@@ -1,5 +1,5 @@
-import { connectDB } from './lib/db.ts'
-import Chapter from './models/Chapter.ts'
+import { connectDB } from './lib/db'
+import Chapter from './models/Chapter'
 import cloudinary from 'cloudinary'
 import dotenv from 'dotenv'
 
