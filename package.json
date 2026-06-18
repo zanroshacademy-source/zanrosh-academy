@@ -9,17 +9,29 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.2.6",
+    "@clerk/nextjs": "^7.4.0",
+    "@gsap/react": "^2.1.2",
+    "cloudinary": "^2.10.0",
+    "clsx": "^2.1.1",
+    "disable-devtool": "^0.3.9",
+    "gsap": "^3.15.0",
+    "hls.js": "^1.6.16",
+    "lucide-react": "^0.511.0",
+    "mongoose": "^9.6.2",
+    "next": "^15.3.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-player": "^3.4.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/hls.js": "^0.13.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "^15.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
