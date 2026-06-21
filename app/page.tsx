@@ -169,10 +169,13 @@ export default function HomePage() {
             <p className="text-gray-400 text-sm">Empowering Quetta's youth with modern education.</p>
           </div>
           
-          <div className="flex items-center gap-8">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4">
              <Link href="/courses" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Courses</Link>
              <Link href="/about" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">About Us</Link>
              <Link href="/contact" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Contact</Link>
+             <Link href="/terms" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Terms & Conditions</Link>
+             <Link href="/privacy" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Privacy Policy</Link>
+             <Link href="/refund" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Refund Policy</Link>
           </div>
         </div>
 
