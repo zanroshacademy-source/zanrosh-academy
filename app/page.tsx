@@ -58,7 +58,7 @@ export default function HomePage() {
               
               <FadeIn delay={800} duration={1000}>
                 <p className="text-lg md:text-xl text-[#27187e] font-semibold mb-8 max-w-xl drop-shadow-[0_0_15px_rgba(255,255,255,1)] bg-white/40 backdrop-blur-sm p-5 rounded-2xl border border-white/50 shadow-sm">
-                  We empower students and craft courses that define what comes next for Quetta's youth.
+                 We empower students of Class 9th, 10th, 11th and  12th across Balochistan with premium, fully animated video lectures Based perfectly to the National Curriculum 2022-2023.
                 </p>
               </FadeIn>
               
@@ -104,7 +104,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-black text-[#27187e] mb-4">Why Choose Zanrosh Academy?</h2>
             <p className="text-[#4A5043] text-lg max-w-2xl mx-auto font-medium">
-              Transforming the way students in Quetta learn with premium online education tailored to your needs.
+            ​Transforming Physics for students across Balochistan. We bring your textbook to life with fully animated video lectures step-by-step.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-[#27187e] mb-3">Comprehensive Syllabus</h3>
               <p className="text-[#4A5043] font-medium leading-relaxed">
-                Full coverage for 9th, 10th, 1st Year, and 2nd Year. Includes 25+ dedicated physics lectures broken down chapter by chapter.
+               Unmatched expertise at your fingertips. Get access to paid, premium physics lectures covering the entire National Curriculum (2022–2023), taught by a trusted professor.
               </p>
             </div>
 
@@ -138,7 +138,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-[#27187e] mb-3">Safe & Accessible</h3>
               <p className="text-[#4A5043] font-medium leading-relaxed">
-                Perfect for girls and women who face travel difficulties. Study safely from home with the best educators in the city.
+               The perfect learning solution for female students and anyone facing transportation or travel challenges. Study physics safely from the comfort of your home with premium, animated lectures that cover the complete Balochistan Board syllabus.
               </p>
             </div>
 
@@ -147,7 +147,7 @@ export default function HomePage() {
               <div className="max-w-2xl">
                 <h3 className="text-2xl font-black text-white mb-3">Most Affordable in Quetta</h3>
                 <p className="text-white/80 font-medium leading-relaxed text-lg">
-                  Say goodbye to expensive physical academies. Buy only the chapters you need at a fraction of the cost, without compromising on quality.
+                 Say goodbye to expensive physical academies. Access premium, fully animated Physics lectures for Classes 9th to 12th at a fraction of the cost. Invest in high-quality, complete video courses tailored strictly to the Balochistan Board syllabus.
                 </p>
               </div>
               <Link href="/courses" className="bg-white text-[#27187e] px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-transform whitespace-nowrap shadow-lg">
