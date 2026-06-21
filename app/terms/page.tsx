@@ -52,7 +52,7 @@ export default function TermsPage() {
           <h2>7. Contact Us</h2>
           <p>If you have any questions about these Terms, please contact us at:</p>
           <ul>
-            <li><strong>Email:</strong> support@zanroshacademy.com</li>
+            <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
             <li><strong>Phone:</strong> +92 333 8945859</li>
           </ul>
         </div>

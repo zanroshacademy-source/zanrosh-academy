@@ -55,8 +55,8 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-[#27187e] text-sm mb-0.5">Email (Customer Support)</h3>
-                  <a href="mailto:support@zanroshacademy.com" className="text-[#4A5043] hover:text-[#27187e] transition-colors text-sm font-medium">
-                    support@zanroshacademy.com
+                  <a href="mailto:zanroshacademy@gmail.com" className="text-[#4A5043] hover:text-[#27187e] transition-colors text-sm font-medium">
+                    zanroshacademy@gmail.com
                   </a>
                 </div>
               </div>

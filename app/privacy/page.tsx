@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           <h2>6. Contact Us</h2>
           <p>If you have any questions regarding this Privacy Policy, please contact us at:</p>
           <ul>
-            <li><strong>Email:</strong> support@zanroshacademy.com</li>
+            <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
             <li><strong>Phone:</strong> +92 333 8945859</li>
           </ul>
         </div>

@@ -35,7 +35,7 @@ export default function RefundPage() {
           <p>To request a refund under these exceptions, you must contact our support team within <strong>3 days</strong> of the original purchase date.</p>
 
           <h2>3. How to Request a Refund</h2>
-          <p>If you believe you qualify for a refund, please email our support team at <strong>support@zanroshacademy.com</strong> with the following details:</p>
+          <p>If you believe you qualify for a refund, please email our support team at <strong>zanroshacademy@gmail.com</strong> with the following details:</p>
           <ul>
             <li>Your full name and email address used for the purchase.</li>
             <li>Order/Transaction ID.</li>
@@ -49,7 +49,7 @@ export default function RefundPage() {
           <h2>5. Contact Us</h2>
           <p>If you have any questions regarding this policy, please reach out to us at:</p>
           <ul>
-            <li><strong>Email:</strong> support@zanroshacademy.com</li>
+            <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
             <li><strong>Phone:</strong> +92 333 8945859</li>
           </ul>
         </div>
