@@ -21,7 +21,7 @@ export default function TermsPage() {
           
           <p><strong>Effective Date:</strong> {new Date().toLocaleDateString()}</p>
           
-          <p>Welcome to <strong>Zanrosh Academy</strong> ("we," "our," or "us"). By accessing or using our website and services, you agree to comply with and be bound by the following Terms and Conditions.</p>
+          <p>Welcome to <strong>Zanrosh Academy</strong> (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). By accessing or using our website and services, you agree to comply with and be bound by the following Terms and Conditions.</p>
 
           <h2>1. Business Information</h2>
           <p>
@@ -44,7 +44,7 @@ export default function TermsPage() {
           <p>All payments are processed securely through our authorized payment gateways (e.g., Safepay). By purchasing a course, you agree to provide valid payment information. Prices are subject to change without prior notice.</p>
 
           <h2>5. Restricted Items</h2>
-          <p>We do not sell physical goods, illicit items, adult content, or any products restricted by the State Bank of Pakistan or Safepay's Acceptable Use Policy.</p>
+          <p>We do not sell physical goods, illicit items, adult content, or any products restricted by the State Bank of Pakistan or Safepay&apos;s Acceptable Use Policy.</p>
 
           <h2>6. Intellectual Property</h2>
           <p>All content, including videos, text, graphics, and logos, is the property of Zanrosh Academy and is protected by copyright laws. Unauthorized reproduction is strictly prohibited.</p>
@@ -54,7 +54,16 @@ export default function TermsPage() {
           <ul>
             <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
             <li><strong>Phone:</strong> +92 333 8945859</li>
+            <li><strong>Address:</strong> Sariab Road, Quetta, Balochistan, Pakistan</li>
           </ul>
+
+          <h2>8. Governing Law and Jurisdiction</h2>
+          <p>
+            These Terms and Conditions shall be governed by and construed in accordance with the laws of the <strong>Islamic Republic of Pakistan</strong>. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts of <strong>Quetta, Balochistan, Pakistan</strong>.
+          </p>
+          <p>
+            By using our services, you consent to the jurisdiction of Pakistani courts for the resolution of any disputes. If any provision of these Terms is found to be unenforceable under Pakistani law, the remaining provisions shall continue in full force and effect.
+          </p>
         </div>
       </div>
     </div>
