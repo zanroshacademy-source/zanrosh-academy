@@ -5,44 +5,45 @@ import Link from 'next/link'
 import { BookOpen, Video, Layers, ArrowRight, Clock } from 'lucide-react'
 import { formatPKR } from '@/lib/utils'
 
+// Always show these class filter buttons regardless of what's in the DB
+const CLASS_FILTERS = ['All', '9th Class', '10th Class', '11th Class', '12th Class']
+
 export default function CourseFilters({ courses }: { courses: any[] }) {
   const [activeClass, setActiveClass] = useState<string>('All')
-
-  // Derive unique classes from the data instead of hardcoding dummy data
-  const availableClasses = Array.from(new Set(courses.map(c => c.classLevel))).filter(Boolean)
-  const classes = ['All', ...availableClasses.sort()]
 
   const filteredCourses =
     activeClass === 'All' ? courses : courses.filter(c => c.classLevel === activeClass)
 
   return (
     <div>
-      {/* Class Filter Tabs */}
-      {classes.length > 1 && (
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {classes.map(cls => (
-            <button
-              key={cls}
-              onClick={() => setActiveClass(cls)}
-              className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 ${
-                activeClass === cls
-                  ? 'bg-[#27187e] text-white shadow-md scale-105'
-                  : 'bg-white text-[#4A5043]/70 border border-[#27187e]/10 hover:bg-gray-50 hover:text-[#27187e]'
-              }`}
-            >
-              {cls}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Class Filter Tabs — always show all 4 class buttons */}
+      <div className="flex flex-wrap justify-center gap-3 mb-12">
+        {CLASS_FILTERS.map(cls => (
+          <button
+            key={cls}
+            onClick={() => setActiveClass(cls)}
+            className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 ${
+              activeClass === cls
+                ? 'bg-[#27187e] text-white shadow-md scale-105'
+                : 'bg-white text-[#4A5043]/70 border border-[#27187e]/10 hover:bg-[#27187e]/5 hover:text-[#27187e]'
+            }`}
+          >
+            {cls}
+          </button>
+        ))}
+      </div>
 
       {filteredCourses.length === 0 ? (
         <div className="max-w-md mx-auto text-center py-20 bg-white border border-[#27187e]/10 rounded-3xl">
           <div className="w-20 h-20 bg-[#27187e]/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#27187e]/10">
             <BookOpen size={36} className="text-[#27187e]/30" />
           </div>
-          <h3 className="text-xl font-black text-[#27187e] mb-2">No courses found</h3>
-          <p className="text-[#4A5043]/60 font-medium">No courses available for {activeClass} yet.</p>
+          <h3 className="text-xl font-black text-[#27187e] mb-2">Coming Soon!</h3>
+          <p className="text-[#4A5043]/60 font-medium">
+            {activeClass === 'All'
+              ? 'Courses are being prepared. Check back soon!'
+              : `${activeClass} courses are being prepared. Check back soon!`}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -52,7 +53,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
 
                 {/* Thumbnail */}
                 <div className="relative h-48 w-full bg-gradient-to-br from-[#27187e]/5 to-[#27187e]/10 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
                   <div className="absolute top-3 left-3 z-20">
                     <span className="bg-white/90 backdrop-blur border border-white/20 text-[#27187e] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
                       <Layers size={12} /> {course.classLevel}
@@ -61,7 +62,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
                   {course.unitCount > 0 && (
                     <div className="absolute bottom-3 right-3 z-20">
                       <span className="bg-[#3a86ff] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md">
-                        from {formatPKR(400)}
+                        from {formatPKR(400)}/unit
                       </span>
                     </div>
                   )}
@@ -127,7 +128,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-[#4A5043]/60 text-xs font-bold">
-                      <Clock size={12} /> 15 days access
+                      <Clock size={12} /> Full unit access
                     </div>
                     <div className="w-10 h-10 rounded-2xl bg-[#27187e] text-white flex items-center justify-center group-hover:scale-110 group-hover:bg-[#3a86ff] transition-all duration-300 shadow-sm">
                       <ArrowRight size={18} />

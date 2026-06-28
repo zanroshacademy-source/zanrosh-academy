@@ -16,7 +16,6 @@ export default function NewCoursePage() {
     thumbnail: '',
     category: 'Physics',
     level: '9th Class',
-    price: '',
     isFree: false,
     isPublished: false,
   })
@@ -68,7 +67,7 @@ export default function NewCoursePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          price: parseFloat(form.price) || 0,
+          price: 0,
         }),
       })
       const data = await res.json()
@@ -129,14 +128,10 @@ export default function NewCoursePage() {
                 </div>
               </div>
 
-              {/* Price */}
-              <div>
-                <label className="block text-[#27187e] font-bold mb-2 text-sm uppercase tracking-wider" htmlFor="cp">Full Course Price (PKR) *</label>
-                <input id="cp" type="number" placeholder="e.g. 1500"
-                  className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-3 outline-none transition-all text-[#4A5043] font-medium"
-                  value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
-                  min={0} required />
-                <p className="text-xs text-gray-400 mt-1">Students pay this to unlock all chapters inside.</p>
+              {/* Unit-based pricing info */}
+              <div className="bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl p-4">
+                <p className="text-[#27187e] font-bold text-sm mb-1">💡 Unit-based Pricing</p>
+                <p className="text-[#4A5043]/70 text-xs leading-relaxed">No course-level price. Students buy individual units inside (PKR 400 each). Set prices per unit after creating this course.</p>
               </div>
 
               {/* Checkboxes */}

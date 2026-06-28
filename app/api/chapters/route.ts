@@ -1,6 +1,7 @@
 import { getServerAuth } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
 import { isAdmin, isCourseOwner } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { z } from 'zod'
@@ -36,6 +37,13 @@ export async function POST(request: Request) {
 
     await connectDB()
     const chapter = await Chapter.create(parsed.data)
+
+    // Auto-publish the parent course when a published unit is created
+    // This ensures the course shows up in /courses when the admin publishes a unit
+    if (parsed.data.isPublished) {
+      await Course.findByIdAndUpdate(parsed.data.courseId, { isPublished: true })
+    }
+
     return apiSuccess(chapter, 201)
   } catch (err) {
     console.error('[Chapter POST]', err)

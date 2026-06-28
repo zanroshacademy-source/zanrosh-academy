@@ -1,6 +1,7 @@
 import { getServerAuth } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
 import { isAdmin, isCourseOwner } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
 
@@ -25,6 +26,12 @@ export async function PATCH(
 
     Object.assign(chapter, body)
     await chapter.save()
+
+    // Auto-publish the parent course when this unit is published
+    if (body.isPublished === true) {
+      await Course.findByIdAndUpdate(chapter.courseId, { isPublished: true })
+    }
+
     return apiSuccess(chapter)
   } catch (err) {
     console.error('[Chapter PATCH]', err)

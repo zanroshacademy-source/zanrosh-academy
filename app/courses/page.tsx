@@ -6,16 +6,17 @@ import CourseFilters from '@/components/CourseFilters'
 
 async function getCourses() {
   await connectDB()
+  // Fetch ALL published courses
   const courses = await Course.find({ isPublished: true }).sort({ createdAt: -1 }).lean()
   const courseIds = courses.map(c => c._id)
 
   const [unitCounts, topicCounts] = await Promise.all([
     Chapter.aggregate([
-      { $match: { courseId: { $in: courseIds } } },
+      { $match: { courseId: { $in: courseIds }, isPublished: true } },
       { $group: { _id: '$courseId', count: { $sum: 1 } } },
     ]),
     Topic.aggregate([
-      { $match: { courseId: { $in: courseIds } } },
+      { $match: { courseId: { $in: courseIds }, isPublished: true } },
       { $group: { _id: '$courseId', count: { $sum: 1 } } },
     ]),
   ])
@@ -41,6 +42,10 @@ export default async function CoursesPage() {
       {/* Hero */}
       <div className="relative overflow-hidden pt-20 pb-16 px-6">
         <div className="max-w-3xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-[#27187e]/5 border border-[#27187e]/10 rounded-full px-4 py-2 text-[#27187e] text-xs font-bold mb-6">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            9th · 10th · 11th · 12th Classes
+          </div>
           <h1 className="text-5xl md:text-6xl font-black text-[#27187e] mb-6 leading-none tracking-tight">
             Learn by{' '}
             <span className="text-[#3a86ff]">
@@ -48,8 +53,9 @@ export default async function CoursesPage() {
             </span>
           </h1>
           <p className="text-[#4A5043]/70 text-lg font-medium max-w-xl mx-auto leading-relaxed">
-            Buy only what you need. Each unit unlocks all its video topics for{' '}
-            <span className="text-[#27187e] font-bold">15 days</span> — no long commitments.
+            Choose only the units you want.{' '}
+            <span className="text-[#27187e] font-bold">Own your learning</span>{' '}
+            — study at your own pace with full access to every video in your unit.
           </p>
         </div>
       </div>

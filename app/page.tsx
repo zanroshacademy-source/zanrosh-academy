@@ -2,6 +2,7 @@ import Link from 'next/link'
 import AnimatedHeading from '@/components/AnimatedHeading'
 import FadeIn from '@/components/FadeIn'
 import BentoFeatures from '@/components/BentoFeatures'
+import HomeNavbar from '@/components/HomeNavbar'
 import { Shield, Crown, GraduationCap, BookOpen } from 'lucide-react'
 
 export default function HomePage() {
@@ -23,24 +24,7 @@ export default function HomePage() {
 
         {/* Navbar */}
         <header className="relative z-10 px-6 md:px-12 lg:px-16 pt-6 w-full">
-          <nav className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between border border-white/20 shadow-md">
-            {/* Left: Logo */}
-            <Link href="/" className="text-2xl font-bold tracking-tight text-[#27187e]">
-              Zanrosh
-            </Link>
-            
-            {/* Center: Links */}
-            <div className="hidden md:flex items-center gap-8 text-sm text-[#27187e] font-semibold">
-              <Link href="/courses" className="hover:text-[#4A5043] transition-colors">Courses</Link>
-              <Link href="/about" className="hover:text-[#4A5043] transition-colors">About</Link>
-              <Link href="/contact" className="hover:text-[#4A5043] transition-colors">Contact</Link>
-            </div>
-            
-            {/* Right: Button */}
-            <Link href="/sign-in" className="bg-[#27187e] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-opacity-90 transition-all shadow-lg">
-              Sign In
-            </Link>
-          </nav>
+          <HomeNavbar />
         </header>
 
         {/* Hero Content */}
