@@ -75,7 +75,7 @@ export async function requireSuperAdmin(): Promise<void> {
   if (!ok) throw new Error('Unauthorized: Super Admin only')
 }
 
-// ─── Chapter access check ──────────────────────────────────────────────────
+// ─── Chapter / Unit access check ───────────────────────────────────────────
 export async function hasChapterAccess(userId: string, chapterId: string): Promise<boolean> {
   // Super admins always have access to everything
   const role = await getCurrentUserRole()
@@ -84,7 +84,12 @@ export async function hasChapterAccess(userId: string, chapterId: string): Promi
   const Purchase = (await import('@/models/Purchase')).default
   await connectDB()
   const purchase = await Purchase.findOne({ userId, chapterId, status: 'approved' })
-  return !!purchase
+  if (!purchase) return false
+
+  // Check expiry — if expiresAt is set and in the past, access is denied
+  if (purchase.expiresAt && purchase.expiresAt < new Date()) return false
+
+  return true
 }
 
 // ─── Course ownership check (for admins) ──────────────────────────

@@ -2,6 +2,7 @@ import { getServerAuth } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
+import Chapter from '@/models/Chapter'
 import { isAdmin } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { z } from 'zod'
@@ -35,14 +36,26 @@ export async function PATCH(
     if (adminNote) payment.adminNote = adminNote
     await payment.save()
 
-    await Purchase.findOneAndUpdate({ paymentId: payment._id }, { status })
+    // When approving a unit purchase, set expiresAt based on the unit's accessDays
+    let expiresAt: Date | null = null
+    if (status === 'approved' && payment.chapterId) {
+      const unit = await Chapter.findById(payment.chapterId).select('accessDays').lean()
+      const days = (unit as any)?.accessDays ?? 15
+      expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+    }
+
+    const purchaseUpdate: Record<string, unknown> = { status }
+    if (expiresAt) purchaseUpdate.expiresAt = expiresAt
+
+    await Purchase.findOneAndUpdate({ paymentId: payment._id }, purchaseUpdate)
 
     return apiSuccess({
       message: status === 'approved'
-        ? 'Payment approved. Student now has chapter access.'
+        ? `Payment approved. Student now has unit access${expiresAt ? ` until ${expiresAt.toLocaleDateString()}` : ''}.`
         : 'Payment rejected.',
       paymentId: id,
       status,
+      expiresAt,
     })
   } catch {
     return apiError('Server error', 500)

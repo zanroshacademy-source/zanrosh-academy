@@ -14,7 +14,8 @@ const CreateChapterSchema = z.object({
   videoProvider:      z.enum(['cloudinary', 'external', '']).optional().default(''),
   duration:           z.number().optional().default(0),
   order:              z.number().int().min(0),
-  price:              z.number().min(0).default(0),
+  price:              z.number().min(0).default(400),
+  accessDays:         z.number().int().min(1).max(365).default(15),
   isFree:             z.boolean().default(false),
   isPublished:        z.boolean().default(false),
 })
