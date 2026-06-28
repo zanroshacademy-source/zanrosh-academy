@@ -58,7 +58,7 @@ export default async function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {/* */}
               {users.map((user: any) => (
                 <tr key={user._id?.toString()}>
                   <td style={{ fontWeight: 600 }}>{user.fullName || user.name || '—'}</td>

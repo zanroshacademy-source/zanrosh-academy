@@ -100,7 +100,7 @@ export default async function AdminOverviewPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {/* */}
                 {stats.pendingPayments.map((pay: any) => (
                   <tr key={pay._id?.toString()}>
                     <td style={{ fontWeight: 500 }}>{typeof pay.chapterId === 'object' ? pay.chapterId?.title : pay.chapterId}</td>

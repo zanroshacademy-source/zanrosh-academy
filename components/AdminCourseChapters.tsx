@@ -22,7 +22,7 @@ interface Props {
     chapters: Chapter[]
 }
 
-export default function AdminCourseChapters({ courseId, chapters }: Props) {
+export default function AdminCourseChapters({ chapters }: Props) {
   const router = useRouter()
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
   const [deletingChapter, setDeletingChapter] = useState<string | null>(null)

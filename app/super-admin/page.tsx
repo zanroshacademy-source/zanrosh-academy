@@ -90,7 +90,7 @@ export default async function SuperAdminPage() {
                   <tr><th>Item</th><th>User ID</th><th>Method</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {/* */}
                   {stats.recentPayments.map((pay: any) => (
                     <tr key={pay._id?.toString()}>
                       <td style={{ fontWeight: 500 }}>{typeof pay.courseId === 'object' ? `📚 ${pay.courseId?.title}` : typeof pay.chapterId === 'object' ? `📖 ${pay.chapterId?.title}` : '—'}</td>

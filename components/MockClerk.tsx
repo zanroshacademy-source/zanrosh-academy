@@ -13,12 +13,12 @@ export function SignedIn({ children }: { children: React.ReactNode }) {
 }
 
 // Never renders children (user is never "signed out" in dev mode)
-export function SignedOut({ children }: { _children?: React.ReactNode }) {
+export function SignedOut() {
   return null
 }
 
 // Avatar button placeholder
-export function UserButton({ afterSignOutUrl: _ }: { afterSignOutUrl?: string }) {
+export function UserButton() {
   return (
     <div
       title="Dev Mode — Mock Admin"

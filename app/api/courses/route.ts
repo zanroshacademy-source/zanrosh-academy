@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db'
 import Course from '@/models/Course'
 import User from '@/models/User'
 import { isAdmin, isSuperAdmin } from '@/lib/auth'
-import { apiError, apiSuccess, slugify } from '@/lib/utils'
+import { apiError, apiSuccess } from '@/lib/utils'
 import { z } from 'zod'
 
 const CreateCourseSchema = z.object({

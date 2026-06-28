@@ -85,7 +85,7 @@ export default async function AdminPaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {/* */}
               {payments.map((pay: any) => {
                 const ch = pay.chapterId
                 return (

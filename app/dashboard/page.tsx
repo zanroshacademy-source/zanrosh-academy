@@ -63,7 +63,7 @@ export default async function StudentDashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {/* */}
               {approved.map((p: any) => {
                 // p.courseId = full course purchase, p.chapterId = individual chapter purchase
                 const isCourse = !!p.courseId && typeof p.courseId === 'object'
@@ -110,7 +110,7 @@ export default async function StudentDashboardPage() {
               <table>
                 <thead><tr><th>Chapter</th><th>Method</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {/* */}
                     {payments.map((pay: any) => {
                     const itemTitle = typeof pay.courseId === 'object' ? `📚 ${pay.courseId?.title}` : typeof pay.chapterId === 'object' ? `📖 ${pay.chapterId?.title}` : '—'
                     return (
