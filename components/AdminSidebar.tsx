@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import type { UserRole } from '@/lib/types'
 import {
   LayoutDashboard, BookOpen, CreditCard, Users,
-  GraduationCap, ChevronRight, Shield, Crown,
+  GraduationCap, ChevronRight, Crown,
 } from 'lucide-react'
 
 const adminLinks = [

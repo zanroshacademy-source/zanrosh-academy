@@ -2,7 +2,7 @@ import Link from 'next/link'
 import AnimatedHeading from '@/components/AnimatedHeading'
 import FadeIn from '@/components/FadeIn'
 import BentoFeatures from '@/components/BentoFeatures'
-import { Shield, Crown, GraduationCap, Video, Clock, CheckCircle, BookOpen } from 'lucide-react'
+import { Shield, Crown, GraduationCap, BookOpen } from 'lucide-react'
 
 export default function HomePage() {
   return (

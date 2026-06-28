@@ -2,14 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Video, Lock, Unlock, Clock, Edit, Trash2, Loader2 } from 'lucide-react'
+import { Lock, Unlock, Clock, Edit, Trash2, Loader2 } from 'lucide-react'
 import { formatPKR, formatDuration } from '@/lib/utils'
 import AdminEditChapterForm from '@/components/AdminEditChapterForm'
 
 interface Chapter {
   _id: string
-  courseId: string
-  title: string
+    title: string
   description?: string
   price: number
   isFree: boolean
@@ -20,8 +19,7 @@ interface Chapter {
 }
 
 interface Props {
-  courseId: string
-  chapters: Chapter[]
+    chapters: Chapter[]
 }
 
 export default function AdminCourseChapters({ courseId, chapters }: Props) {

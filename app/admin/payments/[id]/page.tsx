@@ -11,8 +11,7 @@ import { ArrowLeft, Eye, Clock, CheckCircle, XCircle } from 'lucide-react'
 export default async function PaymentReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let payment: any = null
+    let payment: any = null
   if (DEV_MODE) {
     payment = MOCK_PAYMENTS.find((p) => p._id === id) || null
     if (!payment) notFound()

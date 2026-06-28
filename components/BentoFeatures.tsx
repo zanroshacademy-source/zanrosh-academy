@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
-import { BookOpen, BarChart2, ShieldCheck, Video, Clock } from 'lucide-react'
+import { BookOpen, ShieldCheck, Video, Clock } from 'lucide-react'
 
 export default function BentoFeatures() {
   const container = useRef<HTMLDivElement>(null)

@@ -8,8 +8,7 @@ if (!MONGODB_URI) {
 
 // Extend NodeJS global to cache mongoose connection
 declare global {
-  // eslint-disable-next-line no-var
-  var _mongooseCache: {
+    var _mongooseCache: {
     conn: typeof mongoose | null
     promise: Promise<typeof mongoose> | null
   }

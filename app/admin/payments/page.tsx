@@ -39,12 +39,9 @@ export default async function AdminPaymentsPage() {
   const superAdmin = await isSuperAdmin()
   const payments = await getAdminPayments(userId ?? 'dev_user_admin', superAdmin)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pending  = payments.filter((p: any) => p.status === 'pending')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const approved = payments.filter((p: any) => p.status === 'approved')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rejected = payments.filter((p: any) => p.status === 'rejected')
+    const pending  = payments.filter((p: any) => p.status === 'pending')
+    const approved = payments.filter((p: any) => p.status === 'approved')
+    const rejected = payments.filter((p: any) => p.status === 'rejected')
 
   return (
     <div>

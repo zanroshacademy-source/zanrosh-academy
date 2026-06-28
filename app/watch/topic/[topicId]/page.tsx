@@ -92,7 +92,7 @@ export default async function WatchTopicPage({
         api_secret: process.env.CLOUDINARY_API_SECRET,
       })
       let publicId = topic.cloudinaryPublicId as string | undefined
-      let deliveryType = videoSrc.includes('/authenticated/') ? 'authenticated' : 'upload'
+      const deliveryType = videoSrc.includes('/authenticated/') ? 'authenticated' : 'upload'
 
       if (!publicId) {
         const parts = videoSrc.split('/')

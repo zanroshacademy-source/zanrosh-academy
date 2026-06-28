@@ -7,7 +7,7 @@ import Purchase from '@/models/Purchase'
 import Link from 'next/link'
 import {
   BookOpen, Lock, Unlock, ShoppingCart, Video,
-  PlayCircle, Clock, ChevronDown, ChevronRight,
+  PlayCircle, Clock,
   AlertCircle, CheckCircle
 } from 'lucide-react'
 import { formatPKR, formatDuration } from '@/lib/utils'
@@ -279,7 +279,7 @@ function UnitCard({
           <div className="border-t border-white/5 pt-4">
             <div className="flex flex-col gap-1.5">
               {(isUnitPurchased && !isExpired ? unit.topics : unit.topics.slice(0, 3)).map(
-                (topic: any, tIdx: number) => (
+                (topic: any) => (
                   <div key={topic._id} className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
                     isUnitPurchased && !isExpired
                       ? 'hover:bg-white/5 cursor-pointer'

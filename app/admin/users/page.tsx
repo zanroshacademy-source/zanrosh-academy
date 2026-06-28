@@ -19,12 +19,9 @@ export default async function AdminUsersPage() {
   if (!superAdmin && !DEV_MODE) redirect('/admin')
 
   const users = await getUsers()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const superAdmins = users.filter((u: any) => u.role === 'super_admin')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const admins = users.filter((u: any) => u.role === 'admin')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const students = users.filter((u: any) => u.role === 'student')
+    const superAdmins = users.filter((u: any) => u.role === 'super_admin')
+    const admins = users.filter((u: any) => u.role === 'admin')
+    const students = users.filter((u: any) => u.role === 'student')
 
   return (
     <div>

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { BookOpen, Video, Layers, ArrowRight, Clock } from 'lucide-react'
 import { formatPKR } from '@/lib/utils'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function CourseFilters({ courses }: { courses: any[] }) {
   const [activeClass, setActiveClass] = useState<string>('All')
 

@@ -22,8 +22,6 @@ export default function VideoPlayer({
   src,
   fallbackSrc,
   rawSrc,
-  isCloudinary,
-  title,
   userEmail = 'student',
   topicId,
   unitId,

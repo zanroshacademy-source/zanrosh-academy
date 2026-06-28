@@ -65,8 +65,7 @@ export default async function BuyPage({
   if (await isSuperAdmin()) redirect(type === 'course' ? `/courses/${id}` : `/watch/${id}`)
 
   // Check if existing purchase
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const query: any = type === 'course' 
+    const query: any = type === 'course' 
     ? { userId, courseId: id, status: { $in: ['approved', 'pending'] } }
     : { userId, chapterId: id, status: { $in: ['approved', 'pending'] } }
   

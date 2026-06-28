@@ -29,10 +29,8 @@ export default async function StudentDashboardPage() {
   if (!userId) redirect('/sign-in')
 
   const { purchases, payments } = await getDashboardData(userId)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const approved = purchases.filter((p: any) => p.status === 'approved')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pending = purchases.filter((p: any) => p.status === 'pending')
+    const approved = purchases.filter((p: any) => p.status === 'approved')
+    const pending = purchases.filter((p: any) => p.status === 'pending')
 
   return (
     <>

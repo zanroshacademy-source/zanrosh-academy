@@ -13,7 +13,7 @@ export function SignedIn({ children }: { children: React.ReactNode }) {
 }
 
 // Never renders children (user is never "signed out" in dev mode)
-export function SignedOut({ _children }: { _children?: React.ReactNode }) {
+export function SignedOut({ children }: { _children?: React.ReactNode }) {
   return null
 }
 

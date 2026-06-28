@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, Shield, Crown, GraduationCap, Menu, X } from 'lucide-react'
+import { BookOpen, LayoutDashboard, Crown, GraduationCap, Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth, UserButton } from '@clerk/nextjs'
 

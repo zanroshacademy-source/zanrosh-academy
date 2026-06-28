@@ -34,13 +34,11 @@ export default async function WatchPage({
 
   await connectDB()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chapter: any = await Chapter.findById(chapterId).lean()
+    const chapter: any = await Chapter.findById(chapterId).lean()
   if (!chapter) notFound()
 
   // Fetch course + chapters in parallel for faster load
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [course, courseChapters]: [any, any[]] = await Promise.all([
+    const [course, courseChapters]: [any, any[]] = await Promise.all([
     Course.findById(chapter.courseId).lean(),
     Chapter.find({ courseId: chapter.courseId, isPublished: true }).sort({ order: 1 }).select('_id title price isFree order').lean(),
   ])
