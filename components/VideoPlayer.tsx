@@ -104,23 +104,18 @@ export default function VideoPlayer({
       ) { e.preventDefault(); e.stopPropagation() }
     }
 
-    // ── Tab/app switch → redirect to /courses ──────────────────────────────
+    // ── Tab switch → save progress then redirect to /courses ─────────────
     const handleVisibilityChange = () => {
       if (document.hidden) {
         saveProgress()
         router.push('/courses')
       }
     }
-    const handleBlur = () => {
-      saveProgress()
-      router.push('/courses')
-    }
 
     document.body.style.userSelect = 'none'
     ;(document.body.style as any).webkitUserSelect = 'none'
     document.addEventListener('contextmenu', blockCtx, true)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('blur', handleBlur)
     window.addEventListener('keydown', blockKeys, true)
 
     return () => {
@@ -128,7 +123,6 @@ export default function VideoPlayer({
       ;(document.body.style as any).webkitUserSelect = ''
       document.removeEventListener('contextmenu', blockCtx, true)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('blur', handleBlur)
       window.removeEventListener('keydown', blockKeys, true)
       // Restore MediaRecorder
       if ((window as any).__MediaRecorder_orig) {
@@ -230,7 +224,7 @@ export default function VideoPlayer({
       }
     }
     const onCanPlay  = () => { if (bufferTimer.current) clearTimeout(bufferTimer.current); setIsBuffering(false) }
-    const onSeeked   = () => { if (bufferTimer.current) clearTimeout(bufferTimer.current); setIsBuffering(false) }
+    const onSeeked   = () => { if (bufferTimer.current) clearTimeout(bufferTimer.current); setIsBuffering(false); saveProgress() }
     const onWaiting  = () => {
       if (!playingRef.current) return
       if (bufferTimer.current) clearTimeout(bufferTimer.current)
@@ -238,7 +232,7 @@ export default function VideoPlayer({
     }
     const onPlaying  = () => { setIsBuffering(false); setPlaying(true);  playingRef.current = true }
     const onPlay     = () => { setPlaying(true);  playingRef.current = true }
-    const onPause    = () => { setPlaying(false); playingRef.current = false; if (bufferTimer.current) clearTimeout(bufferTimer.current); setIsBuffering(false) }
+    const onPause    = () => { setPlaying(false); playingRef.current = false; if (bufferTimer.current) clearTimeout(bufferTimer.current); setIsBuffering(false); saveProgress() }
     const onProgress = () => {
       if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1))
     }
