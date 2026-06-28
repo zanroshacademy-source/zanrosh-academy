@@ -37,28 +37,19 @@ export default async function CoursesPage() {
   const courses = await getCourses()
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0d0f1f] via-[#12153a] to-[#0d0f1f]">
+    <main className="min-h-screen bg-[#f7f7ff]">
       {/* Hero */}
       <div className="relative overflow-hidden pt-20 pb-16 px-6">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#27187e]/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-20 left-1/4 w-[200px] h-[200px] bg-blue-600/15 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute top-20 right-1/4 w-[200px] h-[200px] bg-purple-600/15 rounded-full blur-2xl pointer-events-none" />
-
         <div className="max-w-3xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white/60 text-xs font-bold mb-6 backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            9th · 10th · 11th · 12th Classes
-          </div>
-          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 leading-none tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-black text-[#27187e] mb-6 leading-none tracking-tight">
             Learn by{' '}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="text-[#3a86ff]">
               Unit
             </span>
           </h1>
-          <p className="text-white/50 text-lg font-medium max-w-xl mx-auto leading-relaxed">
+          <p className="text-[#4A5043]/70 text-lg font-medium max-w-xl mx-auto leading-relaxed">
             Buy only what you need. Each unit unlocks all its video topics for{' '}
-            <span className="text-white font-bold">15 days</span> — no long commitments.
+            <span className="text-[#27187e] font-bold">15 days</span> — no long commitments.
           </p>
         </div>
       </div>
@@ -71,9 +62,9 @@ export default async function CoursesPage() {
             { label: 'Units available', value: courses.reduce((a, c) => a + (c.unitCount ?? 0), 0) },
             { label: 'Video topics', value: courses.reduce((a, c) => a + (c.topicCount ?? 0), 0) },
           ].map(s => (
-            <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center backdrop-blur-sm">
-              <div className="text-3xl font-black text-white mb-1">{s.value}</div>
-              <div className="text-white/40 text-xs font-bold uppercase tracking-wider">{s.label}</div>
+            <div key={s.label} className="bg-white border border-[#27187e]/10 shadow-sm rounded-2xl p-5 text-center">
+              <div className="text-3xl font-black text-[#27187e] mb-1">{s.value}</div>
+              <div className="text-[#4A5043]/50 text-xs font-bold uppercase tracking-wider">{s.label}</div>
             </div>
           ))}
         </div>
