@@ -98,82 +98,96 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
     userId = session.userId
   }
 
-  const data = await getCourseData(id, userId)
-  if (!data) notFound()
+  try {
+    const data = await getCourseData(id, userId)
+    if (!data) notFound()
 
-  const { course, units, isFullCoursePurchased, purchasedUnits } = data
+    const { course, units, isFullCoursePurchased, purchasedUnits } = data
 
-  return (
-    <div className="min-h-screen bg-[#f7f7ff]">
+    return (
+      <div className="min-h-screen bg-[#f7f7ff]">
 
-      {/* ── Course Hero ───────────────────────────────────────────── */}
-      <div className="relative overflow-hidden py-16 px-4 border-b border-[#27187e]/10 bg-white">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-8 items-start relative z-10">
-          <div className="flex-1">
-            <div className="flex flex-wrap gap-2 mb-5">
-              <span className="bg-[#27187e]/5 border border-[#27187e]/10 text-[#27187e] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <BookOpen size={12} /> {(course as any).category || 'General'}
-              </span>
-              <span className="bg-[#27187e]/5 border border-[#27187e]/10 text-[#27187e] text-xs font-bold px-3 py-1.5 rounded-full">
-                Class: {(course as any).level || 'General'}
-              </span>
-              <span className="bg-[#3a86ff]/10 border border-[#3a86ff]/20 text-[#3a86ff] text-xs font-bold px-3 py-1.5 rounded-full">
-                {units.length} Unit{units.length !== 1 ? 's' : ''}
-              </span>
+        {/* ── Course Hero ───────────────────────────────────────────── */}
+        <div className="relative overflow-hidden py-16 px-4 border-b border-[#27187e]/10 bg-white">
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-8 items-start relative z-10">
+            <div className="flex-1">
+              <div className="flex flex-wrap gap-2 mb-5">
+                <span className="bg-[#27187e]/5 border border-[#27187e]/10 text-[#27187e] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                  <BookOpen size={12} /> {(course as any).category || 'General'}
+                </span>
+                <span className="bg-[#27187e]/5 border border-[#27187e]/10 text-[#27187e] text-xs font-bold px-3 py-1.5 rounded-full">
+                  Class: {(course as any).level || 'General'}
+                </span>
+                <span className="bg-[#3a86ff]/10 border border-[#3a86ff]/20 text-[#3a86ff] text-xs font-bold px-3 py-1.5 rounded-full">
+                  {units.length} Unit{units.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black text-[#27187e] mb-5 leading-tight">{course.title}</h1>
+              <p className="text-[#4A5043]/70 text-lg leading-relaxed max-w-2xl">{course.description}</p>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-[#27187e] mb-5 leading-tight">{course.title}</h1>
-            <p className="text-[#4A5043]/70 text-lg leading-relaxed max-w-2xl">{course.description}</p>
+
+            {(course as any).thumbnail && (
+              <div className="w-full md:w-72 shrink-0 rounded-2xl overflow-hidden shadow-lg border border-[#27187e]/10 bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={(course as any).thumbnail} alt={course.title} className="w-full aspect-video object-cover" />
+              </div>
+            )}
           </div>
+        </div>
 
-          {(course as any).thumbnail && (
-            <div className="w-full md:w-72 shrink-0 rounded-2xl overflow-hidden shadow-lg border border-[#27187e]/10 bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={(course as any).thumbnail} alt={course.title} className="w-full aspect-video object-cover" />
-            </div>
-          )}
+        {/* ── Units List ────────────────────────────────────────────── */}
+        <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
+          <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Units</h2>
+          <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
+            Buy each unit individually for {formatPKR(400)}. Access lasts 15 days from payment approval.
+          </p>
+
+          <div className="flex flex-col gap-4">
+            {units.length === 0 && (
+              <div className="text-center py-16 bg-white rounded-3xl border border-[#27187e]/10 shadow-sm">
+                <AlertCircle size={40} className="mx-auto mb-4 text-[#27187e]/20" />
+                <p className="text-[#4A5043]/60 font-medium">No units published yet.</p>
+              </div>
+            )}
+
+            {units.map((unit: any, idx: number) => {
+              const expiresAtStr = purchasedUnits[unit._id]
+              const isUnitPurchased = isFullCoursePurchased || unit._id in purchasedUnits
+              const expiresAt = expiresAtStr ? new Date(expiresAtStr) : null
+              const isExpired = expiresAt ? expiresAt < new Date() : false
+              const daysLeft = expiresAt && !isExpired
+                ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                : null
+
+              return (
+                <UnitCard
+                  key={unit._id}
+                  unit={unit}
+                  idx={idx}
+                  isUnitPurchased={isUnitPurchased && !isExpired}
+                  isExpired={isExpired}
+                  daysLeft={daysLeft}
+                  userId={userId}
+                />
+              )
+            })}
+          </div>
+        </main>
+      </div>
+    )
+  } catch (err: any) {
+    return (
+      <div className="p-10 min-h-screen bg-red-50 flex flex-col items-center justify-center">
+        <h1 className="text-3xl font-black text-red-600 mb-4">Error loading course</h1>
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-red-200 max-w-4xl w-full overflow-auto">
+          <p className="font-bold text-red-800 mb-2">Message:</p>
+          <pre className="text-sm text-red-700 whitespace-pre-wrap">{err.message}</pre>
+          <p className="font-bold text-red-800 mt-4 mb-2">Stack Trace:</p>
+          <pre className="text-xs text-red-900 overflow-x-auto p-4 bg-red-50 rounded-lg">{err.stack}</pre>
         </div>
       </div>
-
-      {/* ── Units List ────────────────────────────────────────────── */}
-      <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
-        <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Units</h2>
-        <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
-          Buy each unit individually for {formatPKR(400)}. Access lasts 15 days from payment approval.
-        </p>
-
-        <div className="flex flex-col gap-4">
-          {units.length === 0 && (
-            <div className="text-center py-16 bg-white rounded-3xl border border-[#27187e]/10 shadow-sm">
-              <AlertCircle size={40} className="mx-auto mb-4 text-[#27187e]/20" />
-              <p className="text-[#4A5043]/60 font-medium">No units published yet.</p>
-            </div>
-          )}
-
-          {units.map((unit: any, idx: number) => {
-            const expiresAtStr = purchasedUnits[unit._id]
-            const isUnitPurchased = isFullCoursePurchased || unit._id in purchasedUnits
-            const expiresAt = expiresAtStr ? new Date(expiresAtStr) : null
-            const isExpired = expiresAt ? expiresAt < new Date() : false
-            const daysLeft = expiresAt && !isExpired
-              ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-              : null
-
-            return (
-              <UnitCard
-                key={unit._id}
-                unit={unit}
-                idx={idx}
-                isUnitPurchased={isUnitPurchased && !isExpired}
-                isExpired={isExpired}
-                daysLeft={daysLeft}
-                userId={userId}
-              />
-            )
-          })}
-        </div>
-      </main>
-    </div>
-  )
+    )
+  }
 }
 
 // ── Unit Card ───────────────────────────────────────────────────
