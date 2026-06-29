@@ -12,8 +12,11 @@ import {
 } from 'lucide-react'
 import { formatPKR, formatDuration } from '@/lib/utils'
 import { notFound } from 'next/navigation'
+import mongoose from 'mongoose'
 
 async function getCourseData(id: string, userId: string | null) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return null
+
   await connectDB()
   const course = await Course.findById(id).lean()
   if (!course || !course.isPublished) return null

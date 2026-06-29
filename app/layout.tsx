@@ -6,10 +6,10 @@ import './globals.css'
 const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
 
 export const metadata: Metadata = {
-  title: 'Zanrosh Academy — Online Learning Platform',
+  title: 'Zanrosh Academy — Physics Classes in Quetta & Online Learning',
   description:
-    'Learn from expert instructors. Buy individual chapters and unlock knowledge at your own pace.',
-  keywords: 'online courses, Pakistan, Easypaisa, JazzCash, learning platform',
+    'Learn from expert instructors. Buy individual chapters and unlock knowledge at your own pace. Best physics classes in Quetta.',
+  keywords: 'physics classess in quetta, quetta classsess, physics classes Quetta, online courses, Pakistan, Easypaisa, JazzCash, learning platform, Zanrosh Academy',
   verification: {
     google: 'yZLpWsFfdrW9kRgt2SYRHJV-kUoV7QVom-UH566uDdo',
   },

@@ -10,5 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ['/admin', '/super-admin', '/dashboard', '/api'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
+    // Optimized for: physics classess in quetta, quetta classsess, physics classes Quetta
   }
 }

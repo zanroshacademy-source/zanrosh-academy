@@ -164,8 +164,10 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-6">
-          <div className="text-gray-500 text-sm">
-            © 2026 Zanrosh Academy. All rights reserved.
+          <div className="text-gray-500 text-sm flex flex-col md:flex-row items-center gap-2">
+            <span>© 2026 Zanrosh Academy. All rights reserved.</span>
+            <span className="hidden md:inline">•</span>
+            <span>Made by <a href="mailto:arzunoteam@gmail.com" className="hover:text-white transition-colors underline decoration-white/30 underline-offset-2">Arzuno Team</a></span>
           </div>
           
           <div className="flex items-center gap-4">
