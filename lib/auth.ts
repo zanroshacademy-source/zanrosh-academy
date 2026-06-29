@@ -24,6 +24,25 @@ export async function getCurrentUser() {
     const fullName = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User'
     const email = clerkUser.emailAddresses[0]?.emailAddress || ''
 
+    if (email) {
+      // Handle Clerk dev -> prod transition: if user exists by email, update their clerkId
+      const existingUser = await UserModel.findOne({ email }).lean()
+      if (existingUser) {
+        user = await UserModel.findOneAndUpdate(
+          { email },
+          { clerkId: userId, fullName },
+          { new: true }
+        ).lean()
+        return {
+          userId,
+          role: user.role as UserRole,
+          fullName: user.fullName,
+          email: user.email,
+          _id: user._id?.toString(),
+        }
+      }
+    }
+
     // The very first user to register becomes super_admin automatically
     const userCount = await UserModel.countDocuments()
     const role: UserRole = userCount === 0 ? 'super_admin' : 'student'
