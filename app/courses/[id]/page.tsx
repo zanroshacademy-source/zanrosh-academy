@@ -40,8 +40,8 @@ async function getCourseData(id: string, userId: string | null) {
   const purchasedUnitIds = new Map<string, Date | null>() // unitId → expiresAt
 
   if (userId) {
-    const { isSuperAdmin } = await import('@/lib/auth')
-    if (await isSuperAdmin()) {
+    const auth = await import('@/lib/auth')
+    if (await auth.isSuperAdmin()) {
       isFullCoursePurchased = true
     } else {
       const coursePurchase = await Purchase.findOne({ userId, courseId: id, status: 'approved' }).lean()

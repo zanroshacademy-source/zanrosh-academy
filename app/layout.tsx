@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description:
     'Learn from expert instructors. Buy individual chapters and unlock knowledge at your own pace.',
   keywords: 'online courses, Pakistan, Easypaisa, JazzCash, learning platform',
+  verification: {
+    google: 'yZLpWsFfdrW9kRgt2SYRHJV-kUoV7QVom-UH566uDdo',
+  },
 }
 
 async function getProvider() {
