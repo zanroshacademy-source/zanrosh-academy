@@ -33,12 +33,14 @@ export async function getCurrentUser() {
           { clerkId: userId, fullName },
           { new: true }
         ).lean()
+        
+        const finalUser = user || existingUser;
         return {
           userId,
-          role: user.role as UserRole,
-          fullName: user.fullName,
-          email: user.email,
-          _id: user._id?.toString(),
+          role: finalUser.role as UserRole,
+          fullName: finalUser.fullName,
+          email: finalUser.email,
+          _id: finalUser._id?.toString(),
         }
       }
     }

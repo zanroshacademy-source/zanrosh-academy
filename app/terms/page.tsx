@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata = {
-  title: 'Terms & Conditions - Zanrosh Academy',
+  title: 'Terms & Conditions Zanrosh Academy',
 }
 
 export default function TermsPage() {

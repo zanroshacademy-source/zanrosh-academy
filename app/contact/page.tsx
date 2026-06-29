@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, Building, Clock, Shield } from 'lucide-react'
 
 export const metadata = {
-  title: 'Contact Us - Zanrosh Academy',
+  title: 'Contact Us Zanrosh Academy',
   description: 'Contact Zanrosh Academy for support, questions, or refund requests. We are based in Quetta, Balochistan, Pakistan.',
 }
 

@@ -55,7 +55,7 @@ export default async function CoursesPage() {
           <p className="text-[#4A5043]/70 text-lg font-medium max-w-xl mx-auto leading-relaxed">
             Choose only the units you want.{' '}
             <span className="text-[#27187e] font-bold">Own your learning</span>{' '}
-            — study at your own pace with full access to every video in your unit.
+            study at your own pace with full access to every video in your unit.
           </p>
         </div>
       </div>

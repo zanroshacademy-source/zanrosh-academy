@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata = {
-  title: 'Refund Policy - Zanrosh Academy',
+  title: 'Refund Policy Zanrosh Academy',
 }
 
 export default function RefundPage() {

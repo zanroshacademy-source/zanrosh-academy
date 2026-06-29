@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata = {
-  title: 'Privacy Policy - Zanrosh Academy',
+  title: 'Privacy Policy Zanrosh Academy',
 }
 
 export default function PrivacyPage() {
