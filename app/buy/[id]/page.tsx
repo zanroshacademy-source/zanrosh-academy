@@ -4,7 +4,7 @@ import Chapter from '@/models/Chapter'
 import Topic from '@/models/Topic'
 import { redirect, notFound } from 'next/navigation'
 import { formatPKR } from '@/lib/utils'
-import PaymentForm from '@/components/PaymentForm'
+import SafepayCheckoutButton from '@/components/SafepayCheckoutButton'
 import Purchase from '@/models/Purchase'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle, Clock, Lock, BookOpen, Video } from 'lucide-react'
@@ -90,36 +90,21 @@ export default async function BuyPage({
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-[#27187e] mb-1">Secure Checkout</h2>
-                  <p className="text-[#4A5043]/70 text-sm">Your payment will be verified manually by an admin.</p>
+                  <p className="text-[#4A5043]/70 text-sm">Powered by Safepay</p>
                 </div>
               </div>
 
               <div>
-                {existing && !isExpired ? (
+                {existing && existing.status === 'approved' && !isExpired ? (
                   <div className="text-center py-6">
-                    {existing.status === 'approved' ? (
-                      <>
-                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <CheckCircle size={48} className="text-emerald-500" />
-                        </div>
-                        <h3 className="text-2xl font-black text-[#27187e] mb-3">✅ Active Access</h3>
-                        <p className="text-[#4A5043] mb-8 text-lg">You already have active access to this unit.</p>
-                        <Link href={`/courses/${item.courseId}`} className="bg-[#27187e] text-white px-8 py-3.5 rounded-xl font-bold hover:scale-105 transition-transform shadow-md inline-flex items-center gap-2">
-                          View Content
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <Clock size={48} className="text-amber-500" />
-                        </div>
-                        <h3 className="text-2xl font-black text-[#27187e] mb-3">⏳ Payment Pending</h3>
-                        <p className="text-[#4A5043] mb-8 text-lg">Your payment is awaiting admin approval. Please check back in a few hours.</p>
-                        <Link href="/dashboard" className="bg-[#27187e] text-white px-8 py-3.5 rounded-xl font-bold hover:scale-105 transition-transform shadow-md inline-flex items-center gap-2">
-                          View Dashboard
-                        </Link>
-                      </>
-                    )}
+                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle size={48} className="text-emerald-500" />
+                    </div>
+                    <h3 className="text-2xl font-black text-[#27187e] mb-3">✅ Active Access</h3>
+                    <p className="text-[#4A5043] mb-8 text-lg">You already have active access to this unit.</p>
+                    <Link href={`/courses/${item.courseId}`} className="bg-[#27187e] text-white px-8 py-3.5 rounded-xl font-bold hover:scale-105 transition-transform shadow-md inline-flex items-center gap-2">
+                      View Content
+                    </Link>
                   </div>
                 ) : (
                   <>
@@ -128,19 +113,18 @@ export default async function BuyPage({
                         <Clock size={16} /> Your previous access has expired. Please renew.
                       </div>
                     )}
-                    <PaymentForm
+                    <SafepayCheckoutButton
                       itemId={id}
                       itemType="chapter"
                       itemTitle={item.title}
                       price={item.price}
-                      userEmail={userEmail}
                     />
                   </>
                 )}
               </div>
             </div>
 
-            {(!existing || isExpired) && (
+            {(!existing || existing.status !== 'approved' || isExpired) && (
               <div className="bg-[#27187e] rounded-2xl p-6 flex justify-between items-center text-white shadow-md">
                 <div>
                   <span className="block text-[#f7f7ff]/70 text-sm font-bold uppercase tracking-wider mb-1">Total Due</span>

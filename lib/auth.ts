@@ -35,6 +35,8 @@ export async function getCurrentUser() {
         ).lean()
         
         const finalUser = user || existingUser;
+        // Block banned users
+        if (finalUser.isBanned) return null
         return {
           userId,
           role: finalUser.role as UserRole,
@@ -55,6 +57,9 @@ export async function getCurrentUser() {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).lean()
   }
+
+  // Block banned users
+  if ((user as any).isBanned) return null
 
   return {
     userId,

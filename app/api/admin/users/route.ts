@@ -58,3 +58,39 @@ export async function PATCH(request: Request) {
     return apiError('Server error', 500)
   }
 }
+
+const BanSchema = z.object({
+  targetUserId: z.string().min(1),
+  isBanned: z.boolean(),
+})
+
+// PUT /api/admin/users — super_admin only: ban / unban a user
+export async function PUT(request: Request) {
+  try {
+    const { userId } = await getServerAuth()
+    if (!userId) return apiError('Unauthorized', 401)
+
+    const superAdmin = await isSuperAdmin()
+    if (!superAdmin) return apiError('Forbidden: Super Admin only', 403)
+
+    const body = await request.json()
+    const parsed = BanSchema.safeParse(body)
+    if (!parsed.success) return apiError(parsed.error.errors[0].message, 422)
+
+    const { targetUserId, isBanned } = parsed.data
+
+    if (targetUserId === userId) return apiError('Cannot ban your own account', 400)
+
+    await connectDB()
+    const updated = await User.findOneAndUpdate(
+      { clerkId: targetUserId },
+      { isBanned },
+      { new: true }
+    )
+    if (!updated) return apiError('User not found', 404)
+
+    return apiSuccess({ message: isBanned ? 'User banned' : 'User unbanned', user: updated })
+  } catch {
+    return apiError('Server error', 500)
+  }
+}

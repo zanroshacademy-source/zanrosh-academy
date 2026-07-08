@@ -6,6 +6,7 @@ export interface IUserDocument extends Document {
   email: string
   fullName: string
   role: UserRole
+  isBanned: boolean
   purchasedCourses: mongoose.Types.ObjectId[]
   purchasedChapters: mongoose.Types.ObjectId[]
   createdCourses: mongoose.Types.ObjectId[]
@@ -26,6 +27,7 @@ const UserSchema = new Schema<IUserDocument>(
     purchasedCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
     purchasedChapters: [{ type: Schema.Types.ObjectId, ref: 'Chapter' }],
     createdCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+    isBanned: { type: Boolean, default: false },
   },
   { timestamps: true }
 )

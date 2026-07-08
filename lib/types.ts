@@ -1,8 +1,6 @@
 // ─── Role System ──────────────────────────────────────────────────
 export type UserRole = 'student' | 'admin' | 'super_admin'
-
-export type PaymentMethod = 'easypaisa' | 'jazzcash'
-
+export type PaymentMethod = 'easypaisa' | 'jazzcash' | 'safepay'
 export type PaymentStatus = 'pending' | 'approved' | 'rejected'
 
 export type VideoProvider = 'cloudinary' | 'external'

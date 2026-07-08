@@ -4,8 +4,10 @@ import { connectDB } from '@/lib/db'
 import User from '@/models/User'
 import { isSuperAdmin } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Shield, GraduationCap, Users, Crown } from 'lucide-react'
+import { Shield, GraduationCap, Users, Crown, Ban } from 'lucide-react'
 import RoleManager from '@/components/RoleManager'
+import BanButton from '@/components/BanButton'
+import { auth } from '@clerk/nextjs/server'
 
 async function getUsers() {
   if (DEV_MODE) return MOCK_USERS
@@ -19,9 +21,13 @@ export default async function AdminUsersPage() {
   if (!superAdmin && !DEV_MODE) redirect('/admin')
 
   const users = await getUsers()
-    const superAdmins = users.filter((u: any) => u.role === 'super_admin')
-    const admins = users.filter((u: any) => u.role === 'admin')
-    const students = users.filter((u: any) => u.role === 'student')
+  const superAdmins = users.filter((u: any) => u.role === 'super_admin')
+  const admins = users.filter((u: any) => u.role === 'admin')
+  const students = users.filter((u: any) => u.role === 'student')
+  const bannedCount = users.filter((u: any) => u.isBanned).length
+
+  // Get current super admin's clerkId to prevent self-ban
+  const { userId: selfClerkId } = await auth()
 
   return (
     <div>
@@ -40,6 +46,11 @@ export default async function AdminUsersPage() {
         </span>
         <span className="badge badge-rejected"><Shield size={12} /> {admins.length} Admin{admins.length !== 1 ? 's' : ''}</span>
         <span className="badge badge-approved"><GraduationCap size={12} /> {students.length} Student{students.length !== 1 ? 's' : ''}</span>
+        {bannedCount > 0 && (
+          <span style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', display: 'inline-flex', alignItems: 'center', padding: '0.25rem 0.625rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, gap: '0.25rem' }}>
+            <Ban size={12} /> {bannedCount} Banned
+          </span>
+        )}
       </div>
 
       {users.length === 0 ? (
@@ -52,15 +63,15 @@ export default async function AdminUsersPage() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th>Clerk ID</th>
                 <th>Joined</th>
                 {superAdmin && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {/* */}
               {users.map((user: any) => (
-                <tr key={user._id?.toString()}>
+                <tr key={user._id?.toString()} style={{ opacity: user.isBanned ? 0.55 : 1 }}>
                   <td style={{ fontWeight: 600 }}>{user.fullName || user.name || '—'}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{user.email}</td>
                   <td>
@@ -75,6 +86,12 @@ export default async function AdminUsersPage() {
                       {user.role}
                     </span>
                   </td>
+                  <td>
+                    {user.isBanned
+                      ? <span style={{ display:'inline-flex', alignItems:'center', gap:'0.25rem', background:'rgba(239,68,68,0.12)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', padding:'0.2rem 0.5rem', borderRadius:'9999px', fontSize:'0.7rem', fontWeight:700 }}><Ban size={10}/>Banned</span>
+                      : <span style={{ display:'inline-flex', alignItems:'center', gap:'0.25rem', background:'rgba(16,185,129,0.1)', color:'#34d399', border:'1px solid rgba(16,185,129,0.25)', padding:'0.2rem 0.5rem', borderRadius:'9999px', fontSize:'0.7rem', fontWeight:700 }}>Active</span>
+                    }
+                  </td>
                   <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user.clerkId}
                   </td>
@@ -83,10 +100,17 @@ export default async function AdminUsersPage() {
                   </td>
                   {superAdmin && (
                     <td>
-                      <RoleManager
-                        targetClerkId={user.clerkId}
-                        currentRole={user.role}
-                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <RoleManager
+                          targetClerkId={user.clerkId}
+                          currentRole={user.role}
+                        />
+                        <BanButton
+                          targetClerkId={user.clerkId}
+                          isBanned={!!user.isBanned}
+                          isSelf={user.clerkId === selfClerkId}
+                        />
+                      </div>
                     </td>
                   )}
                 </tr>

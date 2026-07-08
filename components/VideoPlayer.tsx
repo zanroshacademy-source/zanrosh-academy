@@ -40,6 +40,7 @@ export default function VideoPlayer({
   const saveTimer     = useRef<ReturnType<typeof setInterval> | null>(null)
   const didSeekRef    = useRef(false)          // only seek once on load
   const durationRef   = useRef(0)             // always-current for closures
+  const [isBlacked, setIsBlacked]           = useState(false) // window blur blackout
 
   const [playing, setPlaying]           = useState(false)
   const [currentTime, setCurrentTime]   = useState(0)
@@ -112,11 +113,17 @@ export default function VideoPlayer({
       }
     }
 
+    // ── Window blur → blackout video (catches alt-tab, OBS window capture) ─
+    const handleWindowBlur  = () => setIsBlacked(true)
+    const handleWindowFocus = () => setIsBlacked(false)
+
     document.body.style.userSelect = 'none'
     ;(document.body.style as any).webkitUserSelect = 'none'
     document.addEventListener('contextmenu', blockCtx, true)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('keydown', blockKeys, true)
+    window.addEventListener('blur',  handleWindowBlur)
+    window.addEventListener('focus', handleWindowFocus)
 
     return () => {
       document.body.style.userSelect = ''
@@ -124,6 +131,8 @@ export default function VideoPlayer({
       document.removeEventListener('contextmenu', blockCtx, true)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('keydown', blockKeys, true)
+      window.removeEventListener('blur',  handleWindowBlur)
+      window.removeEventListener('focus', handleWindowFocus)
       // Restore MediaRecorder
       if ((window as any).__MediaRecorder_orig) {
         ;(window as any).MediaRecorder = (window as any).__MediaRecorder_orig
@@ -301,8 +310,26 @@ export default function VideoPlayer({
   }
   const toggleFullscreen = () => {
     const el = containerRef.current; if (!el) return
-    if (!document.fullscreenElement) el.requestFullscreen().then(() => setFullscreen(true)).catch(() => {})
-    else document.exitFullscreen().then(() => setFullscreen(false)).catch(() => {})
+    if (!document.fullscreenElement) {
+      el.requestFullscreen().then(() => {
+        setFullscreen(true)
+        // Lock to landscape on mobile
+        try {
+          if (screen.orientation && (screen.orientation as any).lock) {
+            (screen.orientation as any).lock('landscape').catch(() => {})
+          }
+        } catch {}
+      }).catch(() => {})
+    } else {
+      document.exitFullscreen().then(() => {
+        setFullscreen(false)
+        try {
+          if (screen.orientation && (screen.orientation as any).unlock) {
+            (screen.orientation as any).unlock()
+          }
+        } catch {}
+      }).catch(() => {})
+    }
   }
   const setSpeed = (s: number) => {
     if (videoRef.current) videoRef.current.playbackRate = s
@@ -334,6 +361,27 @@ export default function VideoPlayer({
         </div>
       )}
 
+      {/* ── CSS: hide native browser download / controls ──────────── */}
+      <style>{`
+        video::-webkit-media-controls-download-button { display: none !important; }
+        video::-webkit-media-controls-panel { background: transparent !important; }
+        video::--webkit-media-controls { display: none !important; }
+      `}</style>
+
+      {/* ── Window-blur blackout overlay ────────────────────────────── */}
+      {isBlacked && (
+        <div
+          className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center gap-3 pointer-events-none"
+          aria-hidden="true"
+        >
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" opacity="0.4">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <p className="text-white/40 text-xs font-bold tracking-widest uppercase">Video paused</p>
+        </div>
+      )}
+
       {/* ── Video Element ──────────────────────────────────────────── */}
       <video
         ref={videoRef}
@@ -341,6 +389,7 @@ export default function VideoPlayer({
         playsInline
         preload="metadata"
         disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
         onClick={togglePlay}
         onDoubleClick={toggleFullscreen}
         onContextMenu={e => e.preventDefault()}
@@ -350,21 +399,24 @@ export default function VideoPlayer({
       {/* ── Dynamic Forensic Watermark ─────────────────────────────── */}
       <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none" aria-hidden="true">
         <style>{`
-          @keyframes wm-right { 0% { left: -60%; } 100% { left: 110%; } }
-          @keyframes wm-left  { 0% { left: 110%; } 100% { left: -60%; } }
-          @keyframes wm-diag  { 0% { left: -60%; top: 10%; } 50% { left: 110%; top: 60%; } 100% { left: -60%; top: 10%; } }
-          .wm-1 { animation: wm-right 35s linear infinite; }
-          .wm-2 { animation: wm-left  35s linear infinite; animation-delay: -17s; }
-          .wm-3 { animation: wm-diag  50s linear infinite; animation-delay: -25s; }
+          @keyframes wm-right { 0% { transform: translateX(-110%); } 100% { transform: translateX(calc(100vw + 110%)); } }
+          @keyframes wm-left  { 0% { transform: translateX(calc(100vw + 110%)); } 100% { transform: translateX(-110%); } }
+          @keyframes wm-diag  { 0%{transform:translate(-110%,0)} 50%{transform:translate(calc(100vw + 110%),150%)} 100%{transform:translate(-110%,0)} }
+          .wm-1 { animation: wm-right 40s linear infinite; }
+          .wm-2 { animation: wm-left  40s linear infinite; animation-delay: -20s; }
+          .wm-3 { animation: wm-diag  55s linear infinite; animation-delay: -27s; }
         `}</style>
-        <div className="wm-1 absolute top-[12%] whitespace-nowrap text-white/10 font-bold font-mono text-lg tracking-[0.25em] mix-blend-overlay pointer-events-none">
+        <div className="wm-1 absolute top-[15%] left-0 whitespace-nowrap font-mono font-semibold pointer-events-none"
+          style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.15)', mixBlendMode: 'difference' }}>
           {userEmail} • ZANROSH ACADEMY
         </div>
-        <div className="wm-2 absolute bottom-[18%] whitespace-nowrap text-white/10 font-bold font-mono text-lg tracking-[0.25em] mix-blend-overlay pointer-events-none">
-          {userEmail} • DO NOT SHARE • {new Date().toLocaleDateString()}
+        <div className="wm-2 absolute bottom-[22%] left-0 whitespace-nowrap font-mono font-semibold pointer-events-none"
+          style={{ fontSize: '10px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.15)', mixBlendMode: 'difference' }}>
+          DO NOT SHARE • {userEmail} • {new Date().toLocaleDateString()}
         </div>
-        <div className="wm-3 absolute whitespace-nowrap text-white/8 font-bold font-mono text-sm tracking-[0.3em] mix-blend-overlay pointer-events-none">
-          {userEmail}
+        <div className="wm-3 absolute top-[48%] left-0 whitespace-nowrap font-mono font-semibold pointer-events-none"
+          style={{ fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.10)', mixBlendMode: 'difference' }}>
+          {userEmail} • LICENSED USER
         </div>
       </div>
 

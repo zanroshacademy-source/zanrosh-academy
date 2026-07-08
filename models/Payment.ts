@@ -12,7 +12,8 @@ export interface IPaymentDocument extends Document {
   status: PaymentStatus
   adminNote?: string
   // Future API integration fields
-  gatewayOrderId?: string
+  safepayTrackerId?: string
+  safepayReference?: string
   gatewayResponse?: Record<string, unknown>
   createdAt: Date
   updatedAt: Date
@@ -31,7 +32,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     },
     method: {
       type: String,
-      enum: ['easypaisa', 'jazzcash'],
+      enum: ['easypaisa', 'jazzcash', 'safepay'],
       required: true,
     },
     amount: { type: Number, required: true },
@@ -43,7 +44,8 @@ const PaymentSchema = new Schema<IPaymentDocument>(
       default: 'pending',
     },
     adminNote: { type: String },
-    gatewayOrderId: { type: String },
+    safepayTrackerId: { type: String },
+    safepayReference: { type: String },
     gatewayResponse: { type: Schema.Types.Mixed },
   },
   { timestamps: true }
