@@ -18,18 +18,14 @@ export default async function BuyPage({
   const { id } = await params
 
   let userId: string | null = null
-  let userEmail = 'student@maqbool.pk'
 
   if (DEV_MODE) {
     userId = DEV_USER.userId
-    userEmail = DEV_USER.emailAddresses[0].emailAddress
   } else {
-    const { auth, currentUser } = await import('@clerk/nextjs/server')
+    const { auth } = await import('@clerk/nextjs/server')
     const session = await auth()
     userId = session.userId
     if (!userId) redirect('/sign-in')
-    const clerkUser = await currentUser()
-    userEmail = clerkUser?.emailAddresses[0]?.emailAddress || userEmail
   }
 
   if (!userId) redirect('/sign-in')
@@ -153,7 +149,7 @@ export default async function BuyPage({
                 <>
                   <h4 className="font-bold text-[#27187e] mb-3 text-sm uppercase tracking-wider">Included Topics</h4>
                   <ul className="flex flex-col gap-2">
-                    {topics.map((t: any, idx) => (
+                    {topics.map((t: any) => (
                       <li key={t._id.toString()} className="flex items-center gap-3 bg-white border border-gray-100 p-3 rounded-xl shadow-sm">
                         <span className="w-6 h-6 rounded-md bg-[#3a86ff]/10 text-[#3a86ff] flex items-center justify-center text-xs font-black shrink-0"><Video size={12} /></span>
                         <span className="font-bold text-[#4A5043] text-sm truncate">{t.title}</span>

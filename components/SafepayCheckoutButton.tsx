@@ -10,7 +10,7 @@ interface Props {
   price: number
 }
 
-export default function SafepayCheckoutButton({ itemId, itemType, itemTitle, price }: Props) {
+export default function SafepayCheckoutButton({ itemId, itemType, itemTitle: _itemTitle, price: _price }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

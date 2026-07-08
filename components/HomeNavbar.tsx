@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useAuth, UserButton } from '@clerk/nextjs'
-import { BookOpen, LayoutDashboard } from 'lucide-react'
+import { LayoutDashboard } from 'lucide-react'
 
 export default function HomeNavbar() {
   const { isSignedIn, isLoaded } = useAuth()

@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     payment.transactionId = response.data.action?.token || tracker
     await payment.save()
 
-    let purchase = await Purchase.findOne({ paymentId: payment._id })
+    const purchase = await Purchase.findOne({ paymentId: payment._id })
     if (purchase) {
       purchase.status = 'approved'
       await purchase.save()
