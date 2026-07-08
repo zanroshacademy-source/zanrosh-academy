@@ -48,26 +48,34 @@ export async function POST(request: Request) {
 
     // ── STEP 1: Create Payment Session ──────────────────────────────────────
     // POST /order/payments/v3/
+    const payload = {
+      merchant_api_key: apiKey,
+      mode: 'payment',
+      currency: 'PKR',
+      amount: price * 100,
+    }
+    
+    console.log(`[Safepay] Attempting to create session at ${baseUrl}/order/payments/v3/`)
+    console.log(`[Safepay] Payload (masked):`, { ...payload, merchant_api_key: apiKey ? '***' + apiKey.slice(-4) : 'MISSING' })
+    console.log(`[Safepay] Secret key length:`, secretKey?.length || 0)
+
     const sessionRes = await fetch(`${baseUrl}/order/payments/v3/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-SFPY-MERCHANT-SECRET': secretKey,
       },
-      body: JSON.stringify({
-        merchant_api_key: apiKey,
-        mode: 'payment',
-        currency: 'PKR',
-        amount: price * 100,
-      }),
+      body: JSON.stringify(payload),
     })
 
     const sessionData = await sessionRes.json()
-    console.log('Safepay session response:', JSON.stringify(sessionData))
+    console.log(`[Safepay] Session response status: ${sessionRes.status} ${sessionRes.statusText}`)
+    console.log(`[Safepay] Session response body:`, JSON.stringify(sessionData))
 
     if (!sessionRes.ok || !sessionData?.data?.tracker?.token) {
-      console.error('Session error:', sessionData)
-      return apiError('Failed to create Safepay session', 500)
+      console.error('[Safepay] CRITICAL Session error:', JSON.stringify(sessionData))
+      const errorMsg = sessionData?.status?.errors?.[0] || sessionData?.message || 'Failed to create Safepay session'
+      return apiError(`Safepay Session Error: ${errorMsg}`, 500)
     }
 
     const trackerToken: string = sessionData.data.tracker.token
@@ -98,11 +106,12 @@ export async function POST(request: Request) {
     })
 
     const passportData = await passportRes.json()
-    console.log('Safepay passport response:', JSON.stringify(passportData))
+    console.log(`[Safepay] Passport response status: ${passportRes.status} ${passportRes.statusText}`)
+    console.log(`[Safepay] Passport response body:`, JSON.stringify(passportData))
 
     if (!passportRes.ok || !passportData?.data) {
-      console.error('Passport error:', passportData)
-      return apiError('Failed to create Safepay auth token', 500)
+      console.error('[Safepay] CRITICAL Passport error:', JSON.stringify(passportData))
+      return apiError('Failed to create Safepay auth token (TBT)', 500)
     }
 
     const tbt: string = passportData.data
