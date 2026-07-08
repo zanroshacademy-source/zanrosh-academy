@@ -6,11 +6,9 @@ import { Loader2, CreditCard } from 'lucide-react'
 interface Props {
   itemId: string
   itemType: 'course' | 'chapter'
-  itemTitle: string
-  price: number
 }
 
-export default function SafepayCheckoutButton({ itemId, itemType, itemTitle: _itemTitle, price: _price }: Props) {
+export default function SafepayCheckoutButton({ itemId, itemType }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

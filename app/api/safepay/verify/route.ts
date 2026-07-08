@@ -16,8 +16,7 @@ export async function GET(request: Request) {
   const secretKey = process.env.SAFEPAY_SECRET_KEY as string
 
   try {
-    // @ts-expect-error - Safepay types are incorrect
-    const safepay = new safepayCore(secretKey, {
+    const safepay = new (safepayCore as any)(secretKey, {
       authType: 'secret',
       host: isSandbox ? 'https://sandbox.api.getsafepay.com' : 'https://api.getsafepay.com'
     })
