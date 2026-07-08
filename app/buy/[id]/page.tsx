@@ -112,8 +112,6 @@ export default async function BuyPage({
                     <SafepayCheckoutButton
                       itemId={id}
                       itemType="chapter"
-                      itemTitle={item.title}
-                      price={item.price}
                     />
                   </>
                 )}
