@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     if (price <= 0) return apiError('Invalid price', 400)
 
     const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT === 'sandbox'
-    const secretKey = process.env.SAFEPAY_SECRET_KEY as string
-    const apiKey = process.env.NEXT_PUBLIC_SAFEPAY_API_KEY as string
+    const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
+    const apiKey = (process.env.SAFEPAY_API_KEY || process.env.NEXT_PUBLIC_SAFEPAY_API_KEY) as string
     const baseUrl = isSandbox
       ? 'https://sandbox.api.getsafepay.com'
       : 'https://api.getsafepay.com'
@@ -118,7 +118,8 @@ export async function POST(request: Request) {
 
     // ── STEP 4: Build Checkout URL ──────────────────────────────────────────
     // Docs: https://safepay-docs.netlify.app/build-your-integration/express-checkout
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl
     const redirectUrl = `${appUrl}/api/safepay/verify`
     const cancelUrl = `${appUrl}/buy/${itemId}?type=${itemType}`
 
