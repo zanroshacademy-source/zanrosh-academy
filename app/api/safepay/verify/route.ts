@@ -1,10 +1,16 @@
 import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
-import { redirect } from 'next/navigation'
+import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 
 export async function POST(request: Request) {
+  const getAppUrl = () => {
+    const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    return rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl
+  }
+  const appUrl = getAppUrl()
+
   try {
     const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
 
@@ -19,14 +25,14 @@ export async function POST(request: Request) {
 
     if (!tracker || !signature) {
       console.error('[Safepay] Missing tracker or signature in POST body')
-      return redirect('/dashboard?error=missing_safepay_data')
+      return NextResponse.redirect(new URL('/dashboard?error=missing_safepay_data', appUrl), 303)
     }
 
     // HMAC-SHA256 verification — identical to what SDK does internally
     const computed = crypto.createHmac('sha256', secretKey).update(tracker).digest('hex')
     if (computed !== signature) {
       console.error('[Safepay] Signature FAILED. Expected:', computed, 'Got:', signature)
-      return redirect('/dashboard?error=invalid_safepay_signature')
+      return NextResponse.redirect(new URL('/dashboard?error=invalid_safepay_signature', appUrl), 303)
     }
 
     console.log('[Safepay] Signature valid.')
@@ -41,11 +47,11 @@ export async function POST(request: Request) {
       payment = await Payment.findOne({ safepayTrackerId: tracker })
     }
 
-    if (!payment) return redirect('/dashboard?error=payment_not_found')
+    if (!payment) return NextResponse.redirect(new URL('/dashboard?error=payment_not_found', appUrl), 303)
 
     if (payment.status === 'approved') {
       const redirectId = payment.courseId || payment.chapterId
-      return redirect(`/courses/${redirectId}`)
+      return NextResponse.redirect(new URL(`/courses/${redirectId}`, appUrl), 303)
     }
 
     payment.status = 'approved'
@@ -67,10 +73,10 @@ export async function POST(request: Request) {
     }
 
     const redirectId = payment.courseId || payment.chapterId
-    return redirect(`/courses/${redirectId}`)
+    return NextResponse.redirect(new URL(`/courses/${redirectId}`, appUrl), 303)
   } catch (err: any) {
     console.error('[Safepay] Verification error:', err)
-    return redirect('/dashboard?error=server_error')
+    return NextResponse.redirect(new URL('/dashboard?error=server_error', appUrl), 303)
   }
 }
 
