@@ -2,36 +2,34 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import { redirect } from 'next/navigation'
+import crypto from 'crypto'
 
 export async function POST(request: Request) {
   try {
-    const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT === 'sandbox'
-    const apiKey = (process.env.SAFEPAY_API_KEY || process.env.NEXT_PUBLIC_SAFEPAY_API_KEY) as string
     const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
-    const environment = (isSandbox ? 'sandbox' : 'production') as any
 
-    const { Safepay } = await import('@sfpy/node-sdk')
-    const safepay = new Safepay({
-      environment,
-      apiKey,
-      v1Secret: secretKey,
-      webhookSecret: secretKey,
-    })
-
-    // SDK reads tracker + sig from the request and validates HMAC
-    const valid = safepay.verify.signature(request)
-
-    if (!valid) {
-      console.error('[Safepay] Signature validation FAILED')
-      return redirect('/dashboard?error=invalid_safepay_signature')
-    }
-
+    // Clone request so we can read formData and still have headers
     const formData = await request.formData()
     const tracker = formData.get('tracker') as string
+    const signature = (formData.get('sig') || formData.get('signature')) as string
     const reference = formData.get('reference') as string
     const orderId = formData.get('order_id') as string
 
-    console.log('[Safepay] Signature valid. Tracker:', tracker, 'OrderId:', orderId)
+    console.log('[Safepay] POST received. Tracker:', tracker, 'OrderId:', orderId)
+
+    if (!tracker || !signature) {
+      console.error('[Safepay] Missing tracker or signature in POST body')
+      return redirect('/dashboard?error=missing_safepay_data')
+    }
+
+    // HMAC-SHA256 verification — identical to what SDK does internally
+    const computed = crypto.createHmac('sha256', secretKey).update(tracker).digest('hex')
+    if (computed !== signature) {
+      console.error('[Safepay] Signature FAILED. Expected:', computed, 'Got:', signature)
+      return redirect('/dashboard?error=invalid_safepay_signature')
+    }
+
+    console.log('[Safepay] Signature valid.')
 
     await connectDB()
 
