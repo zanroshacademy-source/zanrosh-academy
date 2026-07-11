@@ -8,10 +8,11 @@ export async function POST(request: Request) {
     const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT === 'sandbox'
     const apiKey = (process.env.SAFEPAY_API_KEY || process.env.NEXT_PUBLIC_SAFEPAY_API_KEY) as string
     const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
+    const environment = (isSandbox ? 'sandbox' : 'production') as any
 
     const { Safepay } = await import('@sfpy/node-sdk')
     const safepay = new Safepay({
-      environment: isSandbox ? 'sandbox' : 'production',
+      environment,
       apiKey,
       v1Secret: secretKey,
       webhookSecret: secretKey,
