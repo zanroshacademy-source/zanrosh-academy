@@ -46,36 +46,24 @@ export async function POST(request: Request) {
       ? 'https://sandbox.api.getsafepay.com'
       : 'https://api.getsafepay.com'
 
-    // ── STEP 1: Create Payment Session (V1 API) ──────────────────────────────────────
-    const payload = {
-      client: apiKey,
-      amount: price, // V1 accepts normal amount, not cents (1000.00)
-      currency: 'PKR',
+    // ── STEP 1: Initialize SDK & Create Payment Session ──────────────────────
+    const { Safepay } = await import('@sfpy/node-sdk')
+    const safepay = new Safepay({
       environment: isSandbox ? 'sandbox' : 'production',
-    }
-    
-    console.log(`[Safepay] Attempting to create session at ${baseUrl}/order/v1/init`)
-    console.log(`[Safepay] Payload (masked):`, { ...payload, client: apiKey ? '***' + apiKey.slice(-4) : 'MISSING' })
-
-    const sessionRes = await fetch(`${baseUrl}/order/v1/init`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      apiKey,
+      v1Secret: secretKey,
+      webhookSecret: secretKey,
     })
 
-    const sessionData = await sessionRes.json()
-    console.log(`[Safepay] Session response status: ${sessionRes.status} ${sessionRes.statusText}`)
-    console.log(`[Safepay] Session response body:`, JSON.stringify(sessionData))
+    console.log(`[Safepay SDK] Creating payment for amount ${price * 100} PKR (paisas)`)
 
-    if (!sessionRes.ok || !sessionData?.data?.token) {
-      console.error('[Safepay] CRITICAL Session error:', JSON.stringify(sessionData))
-      const errorMsg = sessionData?.status?.errors?.[0] || sessionData?.status?.message || 'Failed to create Safepay session'
-      return apiError(`Safepay Session Error: ${errorMsg}`, 500)
-    }
+    // SDK expects amount in lowest denomination (paisas/cents)
+    const { token } = await safepay.payments.create({
+      amount: price * 100,
+      currency: 'PKR',
+    })
 
-    const trackerToken: string = sessionData.data.token
+    console.log(`[Safepay SDK] Payment created. Token: ${token}`)
 
     // ── STEP 2: Save pending payment to DB ──────────────────────────────────
     const paymentData: any = {
@@ -85,7 +73,7 @@ export async function POST(request: Request) {
       transactionId: `sfpy_${Date.now()}`,
       screenshotUrl: 'safepay_checkout',
       status: 'pending',
-      safepayTrackerId: trackerToken,
+      safepayTrackerId: token,
     }
     if (itemType === 'course') paymentData.courseId = itemId
     else paymentData.chapterId = itemId
@@ -98,16 +86,15 @@ export async function POST(request: Request) {
     const redirectUrl = `${appUrl}/api/safepay/verify`
     const cancelUrl = `${appUrl}/buy/${itemId}?type=${itemType}`
 
-    const checkoutParams = new URLSearchParams({
-      env: isSandbox ? 'sandbox' : 'production',
-      beacon: trackerToken,
+    const checkoutUrl = safepay.checkout.create({
+      token,
+      orderId: payment._id.toString(),
+      cancelUrl,
+      redirectUrl,
       source: 'custom',
-      order_id: payment._id.toString(),
-      redirect_url: redirectUrl,
-      cancel_url: cancelUrl,
+      webhooks: false,
     })
 
-    const checkoutUrl = `${baseUrl}/components?${checkoutParams.toString()}`
     console.log('Safepay checkout URL:', checkoutUrl)
 
     return Response.json({ checkoutUrl })
