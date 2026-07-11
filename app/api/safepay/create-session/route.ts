@@ -46,24 +46,21 @@ export async function POST(request: Request) {
       ? 'https://sandbox.api.getsafepay.com'
       : 'https://api.getsafepay.com'
 
-    // ── STEP 1: Create Payment Session ──────────────────────────────────────
-    // POST /order/payments/v3/
+    // ── STEP 1: Create Payment Session (V1 API) ──────────────────────────────────────
     const payload = {
-      merchant_api_key: apiKey,
-      mode: 'payment',
+      client: apiKey,
+      amount: price, // V1 accepts normal amount, not cents (1000.00)
       currency: 'PKR',
-      amount: price * 100,
+      environment: isSandbox ? 'sandbox' : 'production',
     }
     
-    console.log(`[Safepay] Attempting to create session at ${baseUrl}/order/payments/v3/`)
-    console.log(`[Safepay] Payload (masked):`, { ...payload, merchant_api_key: apiKey ? '***' + apiKey.slice(-4) : 'MISSING' })
-    console.log(`[Safepay] Secret key length:`, secretKey?.length || 0)
+    console.log(`[Safepay] Attempting to create session at ${baseUrl}/order/v1/init`)
+    console.log(`[Safepay] Payload (masked):`, { ...payload, client: apiKey ? '***' + apiKey.slice(-4) : 'MISSING' })
 
-    const sessionRes = await fetch(`${baseUrl}/order/payments/v3/`, {
+    const sessionRes = await fetch(`${baseUrl}/order/v1/init`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-SFPY-MERCHANT-SECRET': secretKey,
       },
       body: JSON.stringify(payload),
     })
@@ -72,13 +69,13 @@ export async function POST(request: Request) {
     console.log(`[Safepay] Session response status: ${sessionRes.status} ${sessionRes.statusText}`)
     console.log(`[Safepay] Session response body:`, JSON.stringify(sessionData))
 
-    if (!sessionRes.ok || !sessionData?.data?.tracker?.token) {
+    if (!sessionRes.ok || !sessionData?.data?.token) {
       console.error('[Safepay] CRITICAL Session error:', JSON.stringify(sessionData))
-      const errorMsg = sessionData?.status?.errors?.[0] || sessionData?.message || 'Failed to create Safepay session'
+      const errorMsg = sessionData?.status?.errors?.[0] || sessionData?.status?.message || 'Failed to create Safepay session'
       return apiError(`Safepay Session Error: ${errorMsg}`, 500)
     }
 
-    const trackerToken: string = sessionData.data.tracker.token
+    const trackerToken: string = sessionData.data.token
 
     // ── STEP 2: Save pending payment to DB ──────────────────────────────────
     const paymentData: any = {
@@ -95,45 +92,22 @@ export async function POST(request: Request) {
 
     const payment = await Payment.create(paymentData)
 
-    // ── STEP 3: Create Authentication Token (tbt) ───────────────────────────
-    // POST /client/passport/v1/token
-    const passportRes = await fetch(`${baseUrl}/client/passport/v1/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-SFPY-MERCHANT-SECRET': secretKey,
-      },
-    })
-
-    const passportData = await passportRes.json()
-    console.log(`[Safepay] Passport response status: ${passportRes.status} ${passportRes.statusText}`)
-    console.log(`[Safepay] Passport response body:`, JSON.stringify(passportData))
-
-    if (!passportRes.ok || !passportData?.data) {
-      console.error('[Safepay] CRITICAL Passport error:', JSON.stringify(passportData))
-      return apiError('Failed to create Safepay auth token (TBT)', 500)
-    }
-
-    const tbt: string = passportData.data
-
-    // ── STEP 4: Build Checkout URL ──────────────────────────────────────────
-    // Docs: https://safepay-docs.netlify.app/build-your-integration/express-checkout
+    // ── STEP 3: Build Checkout URL ──────────────────────────────────────────
     const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const appUrl = rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl
     const redirectUrl = `${appUrl}/api/safepay/verify`
     const cancelUrl = `${appUrl}/buy/${itemId}?type=${itemType}`
 
     const checkoutParams = new URLSearchParams({
-      environment: isSandbox ? 'sandbox' : 'production',
+      env: isSandbox ? 'sandbox' : 'production',
       beacon: trackerToken,
-      tbt,
-      source: 'hosted',
+      source: 'custom',
+      order_id: payment._id.toString(),
       redirect_url: redirectUrl,
       cancel_url: cancelUrl,
-      order_id: payment._id.toString(),
     })
 
-    const checkoutUrl = `${baseUrl}/embedded/?${checkoutParams.toString()}`
+    const checkoutUrl = `${baseUrl}/components?${checkoutParams.toString()}`
     console.log('Safepay checkout URL:', checkoutUrl)
 
     return Response.json({ checkoutUrl })

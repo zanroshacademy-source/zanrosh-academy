@@ -2,47 +2,50 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import { redirect } from 'next/navigation'
-import safepayCore from '@sfpy/node-core'
+import crypto from 'crypto'
 
-export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const tracker = url.searchParams.get('tracker') || ''
-  
-  if (!tracker) {
-    return redirect('/dashboard?error=missing_safepay_tracker')
-  }
-
-  const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT === 'sandbox'
-  const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
-
+export async function POST(request: Request) {
   try {
-    const safepay = new (safepayCore as any)(secretKey, {
-      authType: 'secret',
-      host: isSandbox ? 'https://sandbox.api.getsafepay.com' : 'https://api.getsafepay.com'
-    })
+    const formData = await request.formData()
+    const tracker = formData.get('tracker') as string
+    const signature = formData.get('sig') as string || formData.get('signature') as string
+    const reference = formData.get('reference') as string
+    const orderId = formData.get('order_id') as string
 
-    // 1. Fetch tracker status directly from Safepay (safest verification)
-    const response = await safepay.reporter.payments.fetch(tracker)
-    
-    if (response.data.tracker.state !== 'TRACKER_ENDED') {
-      console.error('Safepay tracker state is not ended', response.data.tracker.state)
-      return redirect('/dashboard?error=payment_not_completed')
+    if (!tracker || !signature) {
+      console.error('Missing Safepay POST data:', { tracker, signature, reference, orderId })
+      return redirect('/dashboard?error=missing_safepay_data')
+    }
+
+    const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
+
+    // Validate Signature HMAC
+    const computedSignature = crypto.createHmac('sha256', secretKey).update(tracker).digest('hex')
+    if (computedSignature !== signature) {
+      console.error('Safepay signature validation failed:', { computedSignature, signature })
+      return redirect('/dashboard?error=invalid_safepay_signature')
     }
 
     await connectDB()
 
-    // 2. Find the payment by the tracker ID
-    const payment = await Payment.findOne({ safepayTrackerId: tracker })
+    // Find the payment by ID or tracker
+    let payment
+    if (orderId) {
+      payment = await Payment.findById(orderId)
+    } else {
+      payment = await Payment.findOne({ safepayTrackerId: tracker })
+    }
+
     if (!payment) return redirect('/dashboard?error=payment_not_found')
 
-    // 3. Process payment
+    // Process payment
     if (payment.status === 'approved') {
       const redirectId = payment.courseId || payment.chapterId
       return redirect(`/courses/${redirectId}`)
     }
 
     payment.status = 'approved'
-    payment.transactionId = response.data.action?.token || tracker
+    payment.transactionId = reference || tracker
     await payment.save()
 
     const purchase = await Purchase.findOne({ paymentId: payment._id })
