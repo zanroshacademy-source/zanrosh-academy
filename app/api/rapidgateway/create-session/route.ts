@@ -137,15 +137,50 @@ export async function POST(request: Request) {
       redirect: 'manual', // critical — do NOT follow the 302, capture Location header
     })
 
-    const redirectUrl = txnRes.headers.get('location')
+    // ── Debug: log everything about the response ─────────────────────────────
+    console.log('[RapidGateway] TXN response status:', txnRes.status)
+    console.log('[RapidGateway] TXN response type:', txnRes.type)
+
+    const locationHeader = txnRes.headers.get('location')
+    console.log('[RapidGateway] Location header:', locationHeader)
+
+    // Log all headers
+    const headerEntries: Record<string, string> = {}
+    txnRes.headers.forEach((val, key) => { headerEntries[key] = val })
+    console.log('[RapidGateway] All headers:', JSON.stringify(headerEntries))
+
+    // Read body for further clues
+    const responseBody = await txnRes.text()
+    console.log('[RapidGateway] Response body:', responseBody.slice(0, 500))
+
+    // Try to find the redirect URL in multiple ways
+    let redirectUrl: string | null = locationHeader
+
+    // Fallback 1: try parsing body as JSON and look for a url/redirect field
+    if (!redirectUrl && responseBody) {
+      try {
+        const json = JSON.parse(responseBody)
+        redirectUrl = json.redirectUrl || json.redirect_url || json.checkoutUrl
+          || json.checkout_url || json.url || json.location || null
+        if (redirectUrl) console.log('[RapidGateway] URL from JSON body:', redirectUrl)
+      } catch {
+        // not JSON — check if the body itself is a URL
+        const trimmed = responseBody.trim()
+        if (trimmed.startsWith('http')) {
+          redirectUrl = trimmed
+          console.log('[RapidGateway] URL from plain text body:', redirectUrl)
+        }
+      }
+    }
+
     if (!redirectUrl) {
-      const body = await txnRes.text()
-      console.error('[RapidGateway] No redirect URL. Status:', txnRes.status, 'Body:', body)
-      return apiError('Gateway did not return a checkout URL', 502)
+      console.error('[RapidGateway] Could not find checkout URL. Status:', txnRes.status, 'Body:', responseBody)
+      return apiError(`Gateway error (${txnRes.status}): ${responseBody.slice(0, 200)}`, 502)
     }
 
     console.log('[RapidGateway] Checkout URL:', redirectUrl)
     return Response.json({ checkoutUrl: redirectUrl })
+
 
   } catch (err: any) {
     console.error('[RapidGateway] Session error:', err)
