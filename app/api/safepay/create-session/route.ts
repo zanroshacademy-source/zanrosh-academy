@@ -41,29 +41,39 @@ export async function POST(request: Request) {
 
     const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENVIRONMENT === 'sandbox'
     const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
-    const apiKey = (process.env.SAFEPAY_API_KEY || process.env.NEXT_PUBLIC_SAFEPAY_API_KEY) as string
-    const environment = (isSandbox ? 'sandbox' : 'production') as any
+    const publicKey = (process.env.SAFEPAY_API_KEY || process.env.NEXT_PUBLIC_SAFEPAY_API_KEY) as string
+    const env = (isSandbox ? 'sandbox' : 'production') as 'sandbox' | 'production'
+    const host = isSandbox
+      ? 'https://sandbox.api.getsafepay.com'
+      : 'https://api.getsafepay.com'
 
-    // ── STEP 1: Initialize SDK & Create Payment Session ──────────────────────
-    const { Safepay } = await import('@sfpy/node-sdk')
-    const safepay = new Safepay({
-      environment,
-      apiKey,
-      v1Secret: secretKey,
-      webhookSecret: secretKey,
+    // ── Initialize @sfpy/node-core ────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const safepay = require('@sfpy/node-core')(secretKey, {
+      authType: 'secret',
+      host,
     })
 
-    console.log(`[Safepay SDK] Creating payment for amount ${price * 100} PKR (paisas)`)
+    // ── STEP 1: Generate Time-Based Token (tbt / passport) ───────────────────
+    const { data: tbt } = await safepay.client.passport.create()
+    console.log('[Safepay] TBT (passport):', tbt)
 
-    // SDK expects amount in lowest denomination (paisas/cents)
-    const { token } = await safepay.payments.create({
-      amount: price * 100,
+    // ── STEP 2: Create payment session to get tracker token ──────────────────
+    // Amount is in lowest denomination (paisas): multiply PKR by 100
+    const {
+      data: {
+        tracker: { token },
+      },
+    } = await safepay.payments.session.setup({
+      merchant_api_key: publicKey,
+      intent: 'CYBERSOURCE',
+      mode: 'payment',
       currency: 'PKR',
+      amount: price * 100,
     })
+    console.log('[Safepay] Tracker token:', token)
 
-    console.log(`[Safepay SDK] Payment created. Token: ${token}`)
-
-    // ── STEP 2: Save pending payment to DB ──────────────────────────────────
+    // ── STEP 3: Save pending payment to DB ───────────────────────────────────
     const paymentData: any = {
       userId,
       method: 'safepay',
@@ -78,26 +88,27 @@ export async function POST(request: Request) {
 
     const payment = await Payment.create(paymentData)
 
-    // ── STEP 3: Build Checkout URL ──────────────────────────────────────────
+    // ── STEP 4: Build Checkout URL ────────────────────────────────────────────
     const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const appUrl = rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl
     const redirectUrl = `${appUrl}/api/safepay/verify`
     const cancelUrl = `${appUrl}/buy/${itemId}?type=${itemType}`
 
-    const checkoutUrl = safepay.checkout.create({
-      token,
-      orderId: payment._id.toString(),
-      cancelUrl,
-      redirectUrl,
-      source: 'custom',
-      webhooks: false,
+    const checkoutUrl = safepay.checkout.createCheckoutUrl({
+      env,
+      source: 'hosted',
+      tbt,
+      tracker: token,
+      redirect_url: redirectUrl,
+      cancel_url: cancelUrl,
+      order_id: payment._id.toString(),
     })
 
-    console.log('Safepay checkout URL:', checkoutUrl)
+    console.log('[Safepay] Checkout URL:', checkoutUrl)
 
     return Response.json({ checkoutUrl })
   } catch (err: any) {
-    console.error('Safepay session error:', err)
+    console.error('[Safepay] Session error:', err)
     return apiError(err.message || 'Server error', 500)
   }
 }
