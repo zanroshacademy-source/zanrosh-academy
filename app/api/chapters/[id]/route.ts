@@ -24,7 +24,7 @@ export async function PATCH(
     const ownsIt = await isCourseOwner(chapter.courseId.toString(), userId)
     if (!ownsIt) return apiError('Forbidden', 403)
 
-    Object.assign(chapter, body)
+    chapter.set(body)
     await chapter.save()
 
     // Auto-publish the parent course when this unit is published
