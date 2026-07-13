@@ -14,6 +14,7 @@ export interface IPaymentDocument extends Document {
   // Future API integration fields
   safepayTrackerId?: string
   safepayReference?: string
+  rapidGatewayBasketId?: string
   gatewayResponse?: Record<string, unknown>
   createdAt: Date
   updatedAt: Date
