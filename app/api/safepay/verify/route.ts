@@ -1,11 +1,30 @@
 import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
+import Chapter from '@/models/Chapter'
 import { NextResponse } from 'next/server'
 
 const getAppUrl = () => {
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   return rawAppUrl.endsWith('/') ? rawAppUrl.slice(0, -1) : rawAppUrl
+}
+
+// Resolve the correct courseId to redirect to after payment
+async function getCourseRedirectId(payment: any): Promise<string | null> {
+  // If the payment is for a whole course, use courseId directly
+  if (payment.courseId) {
+    return payment.courseId.toString()
+  }
+
+  // If the payment is for a chapter (unit), look up the chapter to get its courseId
+  if (payment.chapterId) {
+    const chapter = await Chapter.findById(payment.chapterId).select('courseId').lean()
+    if (chapter?.courseId) {
+      return chapter.courseId.toString()
+    }
+  }
+
+  return null
 }
 
 // ── Shared verification logic ──────────────────────────────────────────────────
@@ -35,10 +54,11 @@ async function handleVerification(
     return NextResponse.redirect(new URL('/dashboard?error=payment_not_found', appUrl), 303)
   }
 
-  // Already approved — just redirect
+  // Already approved — just redirect to the correct course
   if (payment.status === 'approved') {
-    const redirectId = payment.courseId || payment.chapterId
-    return NextResponse.redirect(new URL(`/courses/${redirectId}`, appUrl), 303)
+    const courseId = await getCourseRedirectId(payment)
+    if (courseId) return NextResponse.redirect(new URL(`/courses/${courseId}`, appUrl), 303)
+    return NextResponse.redirect(new URL('/dashboard', appUrl), 303)
   }
 
   payment.status = 'approved'
@@ -59,8 +79,9 @@ async function handleVerification(
     })
   }
 
-  const redirectId = payment.courseId || payment.chapterId
-  return NextResponse.redirect(new URL(`/courses/${redirectId}`, appUrl), 303)
+  const courseId = await getCourseRedirectId(payment)
+  if (courseId) return NextResponse.redirect(new URL(`/courses/${courseId}`, appUrl), 303)
+  return NextResponse.redirect(new URL('/dashboard', appUrl), 303)
 }
 
 // ── GET: Safepay hosted checkout redirects back here with query params ────────
