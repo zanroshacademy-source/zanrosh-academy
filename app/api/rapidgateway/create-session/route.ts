@@ -10,7 +10,7 @@ import { z } from 'zod'
 // ── RapidGateway Sandbox Credentials ────────────────────────────────────────
 const RG_CLIENT_ID     = 'client'
 const RG_CLIENT_SECRET = 'secret'
-const RG_MERCHANT_ID   = 'client'          // sandbox uses the client ID as merchant ID
+const RG_MERCHANT_ID   = '384'             // numeric test merchant ID from RapidGateway docs
 const RG_MERCHANT_NAME = 'Zanrosh Academy'
 const RG_BASE_URL      = 'https://secure.rapid-gateway.com'
 const RG_TOKEN_URL     = `${RG_BASE_URL}/oauth2/token`
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       TXNAMT:                 String(price),
       CURRENCY_CODE:          'PKR',
       CUSTOMER_MOBILE_NO:     customerMobile || '03001234567',
-      CUSTOMER_EMAIL_ADDRESS: 'student@zanrosh.pk',
+      CUSTOMER_EMAIL_ADDRESS: 'student@zanroshacademy.com',
       BASKET_ID:              basketId,
       TXNDESC:                'Zanrosh Academy - Unit Purchase',
       ORDER_DATE:             new Date().toISOString().split('T')[0],

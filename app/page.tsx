@@ -34,8 +34,8 @@ export default function HomePage() {
             {/* Left Column */}
             <div>
               <AnimatedHeading
-                text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything\nMaster Your Exams`}
-                className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
+                text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything`}
+                className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
                 initialDelay={200}
                 charDelay={30}
               />
