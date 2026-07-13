@@ -2,11 +2,13 @@ import { DEV_MODE } from '@/lib/dev-mode'
 import { MOCK_USERS } from '@/lib/mock-data'
 import { connectDB } from '@/lib/db'
 import User from '@/models/User'
+import Purchase from '@/models/Purchase'
 import { isSuperAdmin } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Shield, GraduationCap, Users, Crown, Ban } from 'lucide-react'
 import RoleManager from '@/components/RoleManager'
 import BanButton from '@/components/BanButton'
+import UserSearch from '@/components/UserSearch'
 import { auth } from '@clerk/nextjs/server'
 
 async function getUsers() {
@@ -15,12 +17,41 @@ async function getUsers() {
   return User.find().sort({ createdAt: -1 }).lean()
 }
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
   const superAdmin = await isSuperAdmin()
   // Regular admins are redirected — this page is super_admin or dev_mode only
   if (!superAdmin && !DEV_MODE) redirect('/admin')
 
-  const users = await getUsers()
+  let users = await getUsers()
+  
+  if (q) {
+    const lowercaseQuery = q.toLowerCase()
+    users = users.filter((u: any) => 
+      (u.fullName || u.name || '').toLowerCase().includes(lowercaseQuery) ||
+      (u.email || '').toLowerCase().includes(lowercaseQuery) ||
+      (u.clerkId || '').toLowerCase().includes(lowercaseQuery)
+    )
+  }
+
+  // Fetch the latest expiresAt for all users
+  const userIds = users.map((u: any) => u.clerkId)
+  const purchases = await Purchase.find({ userId: { $in: userIds }, status: 'approved' })
+    .select('userId expiresAt')
+    .lean()
+    
+  const userExpirations: Record<string, Date> = {}
+  purchases.forEach((p: any) => {
+    if (p.expiresAt) {
+      if (!userExpirations[p.userId] || p.expiresAt > userExpirations[p.userId]) {
+        userExpirations[p.userId] = p.expiresAt
+      }
+    }
+  })
   const superAdmins = users.filter((u: any) => u.role === 'super_admin')
   const admins = users.filter((u: any) => u.role === 'admin')
   const students = users.filter((u: any) => u.role === 'student')
@@ -31,11 +62,15 @@ export default async function AdminUsersPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Users size={28} color="var(--accent-light)" /> User Management
-        </h1>
-        <p className="section-subtitle">Manage roles and access for all platform users</p>
+      <div style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Users size={28} color="var(--accent-light)" /> User Management
+          </h1>
+          <p className="section-subtitle">Manage roles and access for all platform users</p>
+        </div>
+        
+        <UserSearch />
       </div>
 
       {/* Summary badges */}
@@ -66,6 +101,7 @@ export default async function AdminUsersPage() {
                 <th>Status</th>
                 <th>Clerk ID</th>
                 <th>Joined</th>
+                <th>Latest Expiry</th>
                 {superAdmin && <th>Actions</th>}
               </tr>
             </thead>
@@ -97,6 +133,15 @@ export default async function AdminUsersPage() {
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                     {new Date(user.createdAt).toLocaleDateString('en-PK')}
+                  </td>
+                  <td style={{ fontSize: '0.8rem' }}>
+                    {userExpirations[user.clerkId] ? (
+                      userExpirations[user.clerkId] > new Date() 
+                        ? <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>{new Date(userExpirations[user.clerkId]).toLocaleDateString('en-PK')}</span>
+                        : <span style={{ color: 'var(--red)', fontWeight: 600 }}>Expired</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>—</span>
+                    )}
                   </td>
                   {superAdmin && (
                     <td>

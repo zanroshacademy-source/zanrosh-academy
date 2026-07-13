@@ -3,7 +3,7 @@ import { ArrowLeft, Mail, Phone, MapPin, Building, Clock, Shield } from 'lucide-
 
 export const metadata = {
   title: 'Contact Us Zanrosh Academy',
-  description: 'Contact Zanrosh Academy for support, questions, or refund requests. We are based in Quetta, Balochistan, Pakistan.',
+  description: 'Contact Zanrosh Academy for support, questions, or refund requests. We are based in Balochistan, Pakistan.',
 }
 
 export default function ContactPage() {
@@ -67,8 +67,8 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-[#27187e] text-sm mb-0.5">Phone (Pakistan)</h3>
-                  <a href="tel:+923338945859" className="text-[#4A5043] hover:text-[#27187e] transition-colors text-sm font-medium">
-                    +92 333 8945859
+                  <a href="tel:03700248454" className="text-[#4A5043] hover:text-[#27187e] transition-colors text-sm font-medium">
+                    0370 0248454
                   </a>
 
                 </div>
@@ -82,7 +82,7 @@ export default function ContactPage() {
                   <h3 className="font-bold text-[#27187e] text-sm mb-0.5">Office Address</h3>
                   <p className="text-[#4A5043] text-sm font-medium leading-relaxed">
                     Sariab Road<br />
-                    Quetta, Balochistan<br />
+                    Balochistan<br />
                     Pakistan
                   </p>
                 </div>

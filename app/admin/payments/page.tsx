@@ -9,6 +9,7 @@ import { isSuperAdmin } from '@/lib/auth'
 import Link from 'next/link'
 import { Clock, CheckCircle, XCircle, Eye, CreditCard } from 'lucide-react'
 import { formatPKR } from '@/lib/utils'
+import DeletePaymentButton from '@/components/DeletePaymentButton'
 
 async function getAdminPayments(userId: string, superAdmin: boolean) {
   if (DEV_MODE) return MOCK_PAYMENTS
@@ -115,13 +116,18 @@ export default async function AdminPaymentsPage() {
                       {new Date(pay.createdAt).toLocaleDateString('en-PK')}
                     </td>
                     <td>
-                      <Link
-                        href={`/admin/payments/${pay._id}`}
-                        className={pay.status === 'pending' ? 'btn-primary' : 'btn-secondary'}
-                        style={{ padding: '0.375rem 0.75rem', fontSize: '0.8rem' }}
-                      >
-                        {pay.status === 'pending' ? 'Review' : 'View'}
-                      </Link>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <Link
+                          href={`/admin/payments/${pay._id}`}
+                          className={pay.status === 'pending' ? 'btn-primary' : 'btn-secondary'}
+                          style={{ padding: '0.375rem 0.75rem', fontSize: '0.8rem' }}
+                        >
+                          {pay.status === 'pending' ? 'Review' : 'View'}
+                        </Link>
+                        {superAdmin && (
+                          <DeletePaymentButton paymentId={pay._id.toString()} />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )

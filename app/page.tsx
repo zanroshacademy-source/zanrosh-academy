@@ -34,7 +34,7 @@ export default function HomePage() {
             {/* Left Column */}
             <div>
               <AnimatedHeading
-                text={`Shaping futures\nwith knowledge.`}
+                text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything\nMaster Your Exams`}
                 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
                 initialDelay={200}
                 charDelay={30}
@@ -42,7 +42,8 @@ export default function HomePage() {
               
               <FadeIn delay={800} duration={1000}>
                 <p className="text-lg md:text-xl text-[#27187e] font-semibold mb-8 max-w-xl drop-shadow-[0_0_15px_rgba(255,255,255,1)] bg-white/40 backdrop-blur-sm p-5 rounded-2xl border border-white/50 shadow-sm">
-                 We empower students of Class 9th, 10th, 11th and  12th across Balochistan with premium, fully animated video lectures Based perfectly to the National Curriculum 2022-2023.
+                 Balochistan’s First Fully Animated Physics Academy according to Balochistan Board (National Curriculum 2022-2023).<br/><br/>
+                 Founded by Maqbool Ahmed Pirkani (Professor in Govt: College)
                 </p>
               </FadeIn>
               
@@ -87,8 +88,8 @@ export default function HomePage() {
           
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-black text-[#27187e] mb-4">Why Choose Zanrosh Academy?</h2>
-            <p className="text-[#4A5043] text-lg max-w-2xl mx-auto font-medium">
-            ​Transforming Physics for students across Balochistan. We bring your textbook to life with fully animated video lectures step-by-step.
+            <p className="text-[#4A5043] text-lg max-w-3xl mx-auto font-medium leading-relaxed">
+              Don't just memorize physics—see it in action! We turn complex formulas into simple visualizations. Whether you are prepping for your board exams or entry tests, our animated video lectures make learning effortless. We don't leave any gaps in your preparation.
             </p>
           </div>
 
@@ -100,7 +101,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-[#27187e] mb-3">Expert Faculty</h3>
               <p className="text-[#4A5043] font-medium leading-relaxed">
-                Learn directly from the top lecturer of Government Postgraduate Boys College Quetta. Unmatched expertise at your fingertips.
+                Learn directly from the top lecturer of Government Postgraduate Boys College, Balochistan. Unmatched expertise at your fingertips.
               </p>
             </div>
 
@@ -109,9 +110,9 @@ export default function HomePage() {
               <div className="w-14 h-14 bg-[#27187e]/10 rounded-2xl flex items-center justify-center mb-6">
                 <BookOpen size={28} className="text-[#27187e]" />
               </div>
-              <h3 className="text-xl font-bold text-[#27187e] mb-3">Comprehensive Syllabus</h3>
+              <h3 className="text-xl font-bold text-[#27187e] mb-3">Complete Coverage</h3>
               <p className="text-[#4A5043] font-medium leading-relaxed">
-               Unmatched expertise at your fingertips. Get access to paid, premium physics lectures covering the entire National Curriculum (2022–2023), taught by a trusted professor.
+               Every chapter includes: 100% Board Aligned topics, Complete Lectures, Solved MCQs, Short Questions, and Step-by-Step Solved Numericals. Learn at your own pace!
               </p>
             </div>
 
@@ -129,7 +130,7 @@ export default function HomePage() {
             {/* Benefit 4 - Spans full width on mobile/tablet, 2 columns on desktop */}
             <div className="bg-[#27187e] rounded-3xl p-8 lg:col-span-3 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="max-w-2xl">
-                <h3 className="text-2xl font-black text-white mb-3">Most Affordable in Quetta</h3>
+                <h3 className="text-2xl font-black text-white mb-3">Most Affordable in Balochistan</h3>
                 <p className="text-white/80 font-medium leading-relaxed text-lg">
                  Say goodbye to expensive physical academies. Access premium, fully animated Physics lectures for Classes 9th to 12th at a fraction of the cost. Invest in high-quality, complete video courses tailored strictly to the Balochistan Board syllabus.
                 </p>
@@ -150,7 +151,7 @@ export default function HomePage() {
             <Link href="/" className="text-3xl font-black tracking-tight text-white mb-2">
               Zanrosh
             </Link>
-            <p className="text-gray-400 text-sm">Empowering Quetta's youth with modern education.</p>
+            <p className="text-gray-400 text-sm">Empowering Balochistan's students with modern education.</p>
           </div>
           
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4">

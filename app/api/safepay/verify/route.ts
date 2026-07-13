@@ -3,6 +3,7 @@ import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
 import { NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 const getAppUrl = () => {
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -31,14 +32,26 @@ async function getCourseRedirectId(payment: any): Promise<string | null> {
 async function handleVerification(
   tracker: string | null,
   reference: string | null,
+  sig: string | null,
   orderId: string | null
 ): Promise<NextResponse> {
   const appUrl = getAppUrl()
 
-  if (!tracker) {
-    console.error('[Safepay] Missing tracker in callback')
+  if (!tracker || !sig) {
+    console.error('[Safepay] Missing tracker or signature in callback')
     return NextResponse.redirect(new URL('/dashboard?error=missing_safepay_data', appUrl), 303)
   }
+
+  // ── IMPORTANT SECURITY CHECK: Verify Safepay Signature ─────────────────────
+  const secretKey = (process.env.SAFEPAY_SECRET_KEY || process.env.NEXT_PUBLIC_SAFEPAY_SECRET_KEY) as string
+  const computed = crypto.createHmac('sha256', secretKey).update(tracker).digest('hex')
+  
+  if (computed !== sig) {
+    console.error('[Safepay] Signature FAILED. Expected:', computed, 'Got:', sig)
+    return NextResponse.redirect(new URL('/dashboard?error=invalid_safepay_signature', appUrl), 303)
+  }
+  console.log('[Safepay] Signature valid.')
+  // ─────────────────────────────────────────────────────────────────────────
 
   await connectDB()
 
@@ -65,18 +78,28 @@ async function handleVerification(
   payment.transactionId = reference || tracker
   await payment.save()
 
+  let expiresAt: Date | null = null
+  if (payment.chapterId) {
+    const chapter = await Chapter.findById(payment.chapterId).select('accessDays').lean()
+    const days = (chapter as any)?.accessDays ?? 15
+    expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+  }
+
   const existingPurchase = await Purchase.findOne({ paymentId: payment._id })
   if (existingPurchase) {
     existingPurchase.status = 'approved'
+    if (expiresAt) existingPurchase.expiresAt = expiresAt
     await existingPurchase.save()
   } else {
-    await Purchase.create({
+    const purchaseData: any = {
       userId: payment.userId,
       paymentId: payment._id,
       status: 'approved',
       courseId: payment.courseId,
       chapterId: payment.chapterId,
-    })
+    }
+    if (expiresAt) purchaseData.expiresAt = expiresAt
+    await Purchase.create(purchaseData)
   }
 
   const courseId = await getCourseRedirectId(payment)
@@ -92,11 +115,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const tracker = searchParams.get('tracker')
     const reference = searchParams.get('reference')
+    const sig = searchParams.get('sig') || searchParams.get('signature')
     const orderId = searchParams.get('order_id')
 
     console.log('[Safepay] GET verify. Tracker:', tracker, 'OrderId:', orderId)
 
-    return handleVerification(tracker, reference, orderId)
+    return handleVerification(tracker, reference, sig, orderId)
   } catch (err: any) {
     console.error('[Safepay] GET verification error:', err)
     return NextResponse.redirect(new URL('/dashboard?error=server_error', appUrl), 303)
@@ -110,23 +134,26 @@ export async function POST(request: Request) {
     const contentType = request.headers.get('content-type') || ''
     let tracker: string | null = null
     let reference: string | null = null
+    let sig: string | null = null
     let orderId: string | null = null
 
     if (contentType.includes('application/json')) {
       const body = await request.json()
       tracker = body.tracker || body.token || null
       reference = body.reference || null
+      sig = body.sig || body.signature || null
       orderId = body.order_id || null
     } else {
       const formData = await request.formData()
       tracker = formData.get('tracker') as string | null
-      reference = (formData.get('reference') || formData.get('sig')) as string | null
+      reference = formData.get('reference') as string | null
+      sig = (formData.get('sig') || formData.get('signature')) as string | null
       orderId = formData.get('order_id') as string | null
     }
 
     console.log('[Safepay] POST verify. Tracker:', tracker, 'OrderId:', orderId)
 
-    return handleVerification(tracker, reference, orderId)
+    return handleVerification(tracker, reference, sig, orderId)
   } catch (err: any) {
     console.error('[Safepay] POST verification error:', err)
     return NextResponse.redirect(new URL('/dashboard?error=server_error', appUrl), 303)

@@ -52,7 +52,7 @@ export default function PrivacyPage() {
           <p>If you have any questions regarding this Privacy Policy, please contact us at:</p>
           <ul>
             <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
-            <li><strong>Phone:</strong> +92 333 8945859</li>
+            <li><strong>Phone:</strong> 0370 0248454</li>
           </ul>
         </div>
       </div>

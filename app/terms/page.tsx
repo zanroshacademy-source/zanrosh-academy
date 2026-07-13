@@ -30,7 +30,7 @@ export default function TermsPage() {
           </p>
 
           <h2>2. Description of Services</h2>
-          <p>Zanrosh Academy provides online educational courses and digital learning materials primarily focused on the local curriculum in Quetta, Pakistan.</p>
+          <p>Zanrosh Academy provides online educational courses and digital learning materials primarily focused on the local curriculum in Balochistan, Pakistan.</p>
 
           <h2>3. Acceptable Use Policy</h2>
           <p>You agree to use our platform only for lawful purposes. You must not:</p>
@@ -53,7 +53,7 @@ export default function TermsPage() {
           <p>If you have any questions about these Terms, please contact us at:</p>
           <ul>
             <li><strong>Email:</strong> zanroshacademy@gmail.com</li>
-            <li><strong>Phone:</strong> +92 333 8945859</li>
+            <li><strong>Phone:</strong> 0370 0248454</li>
             <li><strong>Address:</strong> Sariab Road, Quetta, Balochistan, Pakistan</li>
           </ul>
 

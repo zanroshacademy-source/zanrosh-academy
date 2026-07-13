@@ -32,7 +32,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     },
     method: {
       type: String,
-      enum: ['easypaisa', 'jazzcash', 'safepay'],
+      enum: ['easypaisa', 'jazzcash', 'safepay', 'rapidgateway'],
       required: true,
     },
     amount: { type: Number, required: true },
@@ -46,6 +46,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     adminNote: { type: String },
     safepayTrackerId: { type: String },
     safepayReference: { type: String },
+    rapidGatewayBasketId: { type: String, index: true },
     gatewayResponse: { type: Schema.Types.Mixed },
   },
   { timestamps: true }

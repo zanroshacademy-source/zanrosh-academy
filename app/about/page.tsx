@@ -21,7 +21,7 @@ export default function AboutPage() {
 
         <div className="prose prose-lg text-[#4A5043]">
           <p className="text-lg font-medium leading-relaxed mb-6">
-            Welcome to Zanrosh Academy, the premier online learning platform empowering students in Quetta. 
+            Welcome to Zanrosh Academy, the premier online learning platform empowering students in Balochistan. 
             We believe that every student deserves access to high-quality education, regardless of their circumstances.
           </p>
 
@@ -42,7 +42,7 @@ export default function AboutPage() {
           <ul className="space-y-4 mb-8">
             <li className="flex items-start">
               <span className="bg-[#27187e]/10 text-[#27187e] p-1 rounded mr-3 mt-1">✓</span>
-              <span><strong>Expert Faculty:</strong> Learn directly from the top lecturers of Government Postgraduate Boys College Quetta.</span>
+              <span><strong>Expert Faculty:</strong> Learn directly from the top lecturers of Government Postgraduate Boys College, Balochistan.</span>
             </li>
             <li className="flex items-start">
               <span className="bg-[#27187e]/10 text-[#27187e] p-1 rounded mr-3 mt-1">✓</span>
