@@ -9,7 +9,7 @@ import { z } from 'zod'
 
 // ── RapidGateway Sandbox Credentials ────────────────────────────────────────
 const RG_CLIENT_ID     = 'client'
-const RG_CLIENT_SECRET = 'test'
+const RG_CLIENT_SECRET = 'secret'
 const RG_MERCHANT_ID   = 'client'          // test sandbox uses 'client'
 const RG_MERCHANT_NAME = 'Zanrosh Academy'
 const RG_BASE_URL      = 'https://secure.rapid-gateway.com'

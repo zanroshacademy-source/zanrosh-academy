@@ -35,7 +35,7 @@ export default function HomePage() {
             <div>
               <AnimatedHeading
                 text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything`}
-                className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
+                className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
                 initialDelay={200}
                 charDelay={30}
               />
