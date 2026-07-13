@@ -27,7 +27,7 @@ export default async function AdminUsersPage({
   // Regular admins are redirected — this page is super_admin or dev_mode only
   if (!superAdmin && !DEV_MODE) redirect('/admin')
 
-  let users = await getUsers()
+  let users: any[] = await getUsers()
   
   if (q) {
     const lowercaseQuery = q.toLowerCase()

@@ -18,7 +18,7 @@ export default function DeletePaymentButton({ paymentId }: { paymentId: string }
       })
       if (!res.ok) throw new Error('Failed to delete')
       router.refresh()
-    } catch (err) {
+    } catch {
       alert('Error deleting payment')
     } finally {
       setDeleting(false)
