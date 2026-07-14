@@ -53,6 +53,30 @@ export default function AboutPage() {
               <span><strong>Safe & Accessible:</strong> Perfect for girls and women who face travel difficulties. Study safely from home.</span>
             </li>
           </ul>
+
+          <h2 className="text-2xl font-bold text-[#27187e] mt-10 mb-4 flex items-center gap-2">
+            Business Model
+          </h2>
+          <p className="leading-relaxed mb-6">
+            Zanrosh Academy operates as an e-learning platform specifically focused on delivering 
+            high-quality, localized educational content for students following the Balochistan Board 
+            curriculum. Our business model is B2C (Business to Consumer). We generate revenue by selling 
+            digital access to recorded educational videos, interactive course materials, solved numericals, 
+            and chapter-specific quizzes. Students can purchase access on a per-chapter or per-course basis. 
+            Once a purchase is made, the content is unlocked digitally on their dashboard for a set duration.
+          </p>
+
+          <h2 className="text-2xl font-bold text-[#27187e] mt-10 mb-4 flex items-center gap-2">
+            Intended Use Case of Payment Gateway
+          </h2>
+          <p className="leading-relaxed mb-6">
+            The payment gateway is integrated directly into our secure checkout flow to facilitate the 
+            purchase of our digital courses. When a student decides to buy a chapter or a full course, 
+            they are redirected to the RapidGateway checkout page. Once the payment (via card, JazzCash, 
+            or Easypaisa) is successfully processed by the gateway, an automated webhook notifies our server. 
+            Our system instantly verifies the transaction and unlocks the digital content in the student's 
+            dashboard automatically, providing a seamless and instant educational experience.
+          </p>
         </div>
       </div>
     </div>

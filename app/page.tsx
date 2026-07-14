@@ -35,7 +35,7 @@ export default function HomePage() {
             <div>
               <AnimatedHeading
                 text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything`}
-                className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
+                className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
                 initialDelay={200}
                 charDelay={30}
               />
@@ -147,21 +147,27 @@ export default function HomePage() {
       <footer className="bg-[#0a0a0f] pt-20 pb-10 px-6 md:px-12 lg:px-16 border-t border-white/10 z-20 relative text-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 border-b border-white/10 pb-12 mb-8">
           
-          <div className="flex flex-col items-center md:items-start">
-            <Link href="/" className="text-3xl font-black tracking-tight text-white mb-2">
-              Zanrosh
-            </Link>
-            <p className="text-gray-400 text-sm">Empowering Balochistan's students with modern education.</p>
-          </div>
-          
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4">
-             <Link href="/courses" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Courses</Link>
-             <Link href="/about" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">About Us</Link>
-             <Link href="/contact" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Contact</Link>
-             <Link href="/terms" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Terms & Conditions</Link>
-             <Link href="/privacy" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Privacy Policy</Link>
-             <Link href="/refund" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Refund Policy</Link>
-          </div>
+           <div className="flex flex-col md:w-1/3">
+             <Link href="/" className="text-3xl font-black tracking-tight text-white mb-2">
+               Zanrosh
+             </Link>
+             <p className="text-gray-400 text-sm mb-4">Empowering Balochistan's students with modern education.</p>
+             <div className="text-gray-400 text-sm flex flex-col gap-1">
+               <p><strong>Address:</strong> Green Town Sariab Road Quetta</p>
+               <p><strong>Email:</strong> info@zanroshacademy.com</p>
+               <p><strong>Phone:</strong> 0370 0248454</p>
+             </div>
+           </div>
+           
+           <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-8 gap-y-4 md:w-2/3">
+              <Link href="/courses" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Courses</Link>
+              <Link href="/about" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">About Us</Link>
+              <Link href="/contact" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Contact</Link>
+              <Link href="/terms" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Terms & Conditions</Link>
+              <Link href="/privacy" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Privacy Policy</Link>
+              <Link href="/refund" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Refund Policy</Link>
+              <Link href="/shipping" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">Shipping Policy</Link>
+           </div>
         </div>
 
         <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-6">
