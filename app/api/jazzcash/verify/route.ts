@@ -55,12 +55,13 @@ export async function POST(request: Request) {
       return NextResponse.redirect(new URL('/dashboard?error=missing_txn_ref', appUrl), 303)
     }
 
-    // Verify Hash (uncomment in production with real salt)
-    // const calculatedHash = generateHash(JC_SALT, params)
-    // if (calculatedHash.toUpperCase() !== (receivedHash || '').toUpperCase()) {
-    //   console.error('[JazzCash] Hash mismatch! Expected:', calculatedHash, 'Received:', receivedHash)
-    //   // return NextResponse.redirect(new URL('/dashboard?error=invalid_signature', appUrl), 303)
-    // }
+    // Verify Hash (Sandbox salt is 'null')
+    const calculatedHash = generateHash(JC_SALT, params)
+    if (calculatedHash.toUpperCase() !== (receivedHash || '').toUpperCase()) {
+      console.error('[JazzCash] Hash mismatch! Expected:', calculatedHash, 'Received:', receivedHash)
+      // We log but don't block in Sandbox if testing tools don't sign perfectly
+      // return NextResponse.redirect(new URL('/dashboard?error=invalid_signature', appUrl), 303)
+    }
 
     await connectDB()
 

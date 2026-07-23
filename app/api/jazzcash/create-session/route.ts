@@ -1,4 +1,4 @@
-import { getServerAuth } from '@/lib/server-auth'
+import { getServerAuth, getServerUser } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
@@ -46,8 +46,9 @@ function formatAmount(price: number) {
 
 export async function POST(request: Request) {
   try {
-    const { userId, user } = await getServerAuth()
+    const { userId } = await getServerAuth()
     if (!userId) return apiError('Unauthorized', 401)
+    const user = await getServerUser()
 
     const body = await request.json()
     const parsed = InitSessionSchema.safeParse(body)
