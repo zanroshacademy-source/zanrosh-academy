@@ -15,6 +15,7 @@ export interface IPaymentDocument extends Document {
   safepayTrackerId?: string
   safepayReference?: string
   rapidGatewayBasketId?: string
+  jazzcashRef?: string
   gatewayResponse?: Record<string, unknown>
   createdAt: Date
   updatedAt: Date
@@ -48,6 +49,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     safepayTrackerId: { type: String },
     safepayReference: { type: String },
     rapidGatewayBasketId: { type: String, index: true },
+    jazzcashRef: { type: String, index: true },
     gatewayResponse: { type: Schema.Types.Mixed },
   },
   { timestamps: true }
