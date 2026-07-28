@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db'
 import Purchase from '@/models/Purchase'
 import Payment from '@/models/Payment'
+import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
@@ -9,28 +10,41 @@ import { formatPKR } from '@/lib/utils'
 
 async function getDashboardData(userId: string) {
   await connectDB()
+
   const [purchases, payments] = await Promise.all([
     Purchase.find({ userId })
-      .populate('chapterId', 'title price duration courseId')
-      .populate('courseId', 'title price')
-      .sort({ createdAt: -1 }).lean(),
+      .populate({ path: 'chapterId', select: 'title price courseId', strictPopulate: false })
+      .populate({ path: 'courseId', select: 'title price', strictPopulate: false })
+      .sort({ createdAt: -1 })
+      .lean(),
     Payment.find({ userId })
-      .populate('chapterId', 'title price')
-      .populate('courseId', 'title price')
-      .sort({ createdAt: -1 }).lean(),
+      .populate({ path: 'chapterId', select: 'title price', strictPopulate: false })
+      .populate({ path: 'courseId', select: 'title price', strictPopulate: false })
+      .sort({ createdAt: -1 })
+      .lean(),
   ])
+
   return { purchases, payments }
 }
 
 export default async function StudentDashboardPage() {
-  const { auth } = await import('@clerk/nextjs/server')
   const session = await auth()
   const userId = session.userId
   if (!userId) redirect('/sign-in')
 
-  const { purchases, payments } = await getDashboardData(userId)
-    const approved = purchases.filter((p: any) => p.status === 'approved')
-    const pending = purchases.filter((p: any) => p.status === 'pending')
+  let purchases: any[] = []
+  let payments: any[] = []
+
+  try {
+    const data = await getDashboardData(userId)
+    purchases = data.purchases as any[]
+    payments = data.payments as any[]
+  } catch (err) {
+    console.error('[Dashboard] Failed to load data:', err)
+  }
+
+  const approved = purchases.filter((p: any) => p.status === 'approved')
+  const pending  = purchases.filter((p: any) => p.status === 'pending')
 
   return (
     <>
@@ -42,8 +56,8 @@ export default async function StudentDashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
           {[
             { label: 'Chapters Unlocked', value: approved.length, icon: <CheckCircle size={22} color="var(--green)" /> },
-            { label: 'Pending Approvals', value: pending.length, icon: <Clock size={22} color="var(--amber)" /> },
-            { label: 'Total Payments', value: payments.length, icon: <BookOpen size={22} color="var(--accent-light)" /> },
+            { label: 'Pending Approvals',  value: pending.length,  icon: <Clock size={22} color="var(--amber)" /> },
+            { label: 'Total Payments',     value: payments.length, icon: <BookOpen size={22} color="var(--accent-light)" /> },
           ].map((s) => (
             <div key={s.label} className="stat-card">{s.icon}<div className="stat-value">{s.value}</div><div className="stat-label">{s.label}</div></div>
           ))}
@@ -63,17 +77,16 @@ export default async function StudentDashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* */}
               {approved.map((p: any) => {
-                // p.courseId = full course purchase, p.chapterId = individual chapter purchase
-                const isCourse = !!p.courseId && typeof p.courseId === 'object'
-                const item = isCourse ? p.courseId : p.chapterId
+                const isCourse  = !!p.courseId  && typeof p.courseId  === 'object'
+                const item      = isCourse ? p.courseId : p.chapterId
                 const watchHref = isCourse ? `/courses/${item?._id}` : `/watch/${item?._id}`
                 const watchLabel = isCourse ? 'View Course' : 'Watch Chapter'
+                if (!item) return null
                 return (
                   <div key={p._id.toString()} className="bg-white rounded-[2rem] p-6 border border-[#27187e]/10 shadow-[0_8px_30px_rgba(39,24,126,0.06)] hover:shadow-[0_20px_40px_rgba(39,24,126,0.12)] hover:-translate-y-2 transition-all duration-300 flex flex-col relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#27187e]/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150" />
-                    
+
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="bg-[#27187e]/10 text-[#27187e] px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
@@ -87,7 +100,7 @@ export default async function StudentDashboardPage() {
                       <h3 className="text-2xl font-black text-[#27187e] mb-2 leading-tight group-hover:text-blue-600 transition-colors">
                         {item?.title}
                       </h3>
-                      
+
                       <div className="mt-auto flex items-center justify-end pt-6">
                         <Link href={watchHref} className="bg-gradient-to-r from-[#27187e] to-[#1a0f5a] text-white px-6 py-3 rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105 transition-transform shadow-md group-hover:shadow-lg">
                           <PlayCircle size={18} /> {watchLabel}
@@ -108,11 +121,14 @@ export default async function StudentDashboardPage() {
           ) : (
             <div className="table-wrapper">
               <table>
-                <thead><tr><th>Chapter</th><th>Method</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Date</th></tr></thead>
+                <thead><tr><th>Item</th><th>Method</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>
-                  {/* */}
-                    {payments.map((pay: any) => {
-                    const itemTitle = typeof pay.courseId === 'object' ? `📚 ${pay.courseId?.title}` : typeof pay.chapterId === 'object' ? `📖 ${pay.chapterId?.title}` : '—'
+                  {payments.map((pay: any) => {
+                    const itemTitle = typeof pay.courseId === 'object' && pay.courseId
+                      ? `📚 ${pay.courseId?.title}`
+                      : typeof pay.chapterId === 'object' && pay.chapterId
+                      ? `📖 ${pay.chapterId?.title}`
+                      : '—'
                     return (
                       <tr key={pay._id.toString()}>
                         <td style={{ fontWeight: 500 }}>{itemTitle}</td>
@@ -122,7 +138,7 @@ export default async function StudentDashboardPage() {
                         <td><span className={`badge badge-${pay.status}`}>
                           {pay.status === 'approved' && <CheckCircle size={11} />}
                           {pay.status === 'rejected' && <XCircle size={11} />}
-                          {pay.status === 'pending' && <Clock size={11} />}
+                          {pay.status === 'pending'  && <Clock size={11} />}
                           {pay.status}
                         </span></td>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{new Date(pay.createdAt).toLocaleDateString('en-PK')}</td>
