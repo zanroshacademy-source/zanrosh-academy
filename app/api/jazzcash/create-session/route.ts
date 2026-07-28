@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       pp_TxnCurrency: 'PKR',
       pp_TxnDateTime: formatDt(now),
       pp_TxnExpiryDateTime: formatDt(expiry),
-      pp_BillReference: `ZA-${itemType}-${itemId.slice(0, 8)}`,
+      pp_BillReference: `billRef${itemId.slice(0, 8)}`,
       pp_Description: 'Zanrosh Academy Purchase',
       pp_ReturnURL: `${appUrl}${JC_RETURN_URL_PATH}`,
       ppmpf_1: '1',
