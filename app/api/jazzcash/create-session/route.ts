@@ -121,6 +121,7 @@ export async function POST(request: Request) {
       pp_MerchantID:        JC_MERCHANT_ID,
       pp_SubMerchantID:     '',
       pp_Password:          JC_PASSWORD,
+      pp_IsRegisteredCustomer: 'No',
       pp_TxnRefNo:          txnRefNo,
       pp_Amount:            formatAmount(price),
       pp_TxnCurrency:       'PKR',
