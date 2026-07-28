@@ -5,7 +5,7 @@ import Chapter from '@/models/Chapter'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 
-const JC_SALT = 'null' // use the same salt used in create-session
+const JC_SALT = 'xz2t91u1h2'
 
 const getAppUrl = () => {
   const raw = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

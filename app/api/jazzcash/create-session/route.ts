@@ -8,9 +8,9 @@ import { apiError } from '@/lib/utils'
 import { z } from 'zod'
 import crypto from 'crypto'
 
-const JC_MERCHANT_ID = 'MC870331' // from their example
-const JC_PASSWORD = 'null'
-const JC_SALT = 'null' // they used 'null' in their example script for salt
+const JC_MERCHANT_ID = 'MC870331'
+const JC_PASSWORD    = 'c5f20277u0'
+const JC_SALT        = 'xz2t91u1h2'
 const JC_RETURN_URL_PATH = '/api/jazzcash/verify'
 
 const InitSessionSchema = z.object({
