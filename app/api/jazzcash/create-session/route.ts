@@ -25,17 +25,21 @@ const getAppUrl = () => {
 }
 
 function generateHash(salt: string, params: Record<string, string>) {
-  const sortedKeys = Object.keys(params).filter(k => k.startsWith('pp_') && k !== 'pp_SecureHash').sort()
+  // JazzCash: sort ALL keys (pp_ AND ppmpf_), exclude pp_SecureHash
+  // Include empty values too — JazzCash hashes everything
+  const sortedKeys = Object.keys(params)
+    .filter(k => k !== 'pp_SecureHash')
+    .sort()
   let hashString = salt
   for (const key of sortedKeys) {
-    if (params[key] && params[key] !== '') {
+    if (params[key] !== undefined && params[key] !== '') {
       hashString += '&' + params[key]
     }
   }
   console.log('[JazzCash] Hash String:', hashString)
   const hmac = crypto.createHmac('sha256', salt)
   hmac.update(hashString)
-  const hash = hmac.digest('hex')
+  const hash = hmac.digest('hex').toUpperCase()
   console.log('[JazzCash] Generated Hash:', hash)
   return hash
 }
