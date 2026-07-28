@@ -32,15 +32,17 @@ function generateHash(salt: string, params: Record<string, string>) {
       hashString += '&' + params[key]
     }
   }
-  
+  console.log('[JazzCash] Hash String:', hashString)
   const hmac = crypto.createHmac('sha256', salt)
   hmac.update(hashString)
-  return hmac.digest('hex')
+  const hash = hmac.digest('hex')
+  console.log('[JazzCash] Generated Hash:', hash)
+  return hash
 }
 
 function formatAmount(price: number) {
-  // JazzCash requires amount in minor units (e.g., 10000 for PKR 100.00)
-  // Wait, their example has pp_Amount = 10000. Let's assume price is passed in major units (PKR), so we multiply by 100
+  // JazzCash requires amount with NO decimal — in Paisas (1 PKR = 100 Paisas)
+  // e.g. PKR 100 => 10000
   return (price * 100).toString()
 }
 
@@ -49,12 +51,15 @@ export async function POST(request: Request) {
     const { userId } = await getServerAuth()
     if (!userId) return apiError('Unauthorized', 401)
     const user = await getServerUser()
+    console.log('[JazzCash] User ID:', userId)
 
     const body = await request.json()
+    console.log('[JazzCash] Request body:', body)
     const parsed = InitSessionSchema.safeParse(body)
     if (!parsed.success) return apiError(parsed.error.errors[0].message, 422)
 
     const { itemId, itemType, customerMobile } = parsed.data
+    console.log('[JazzCash] itemId:', itemId, 'itemType:', itemType)
 
     await connectDB()
 
@@ -72,6 +77,7 @@ export async function POST(request: Request) {
     }
 
     if (price <= 0) return apiError('Invalid price', 400)
+    console.log('[JazzCash] Price (PKR):', price, '=> Amount (paisas):', formatAmount(price))
 
     const txnRefNo = 'T' + new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14) + Math.floor(Math.random() * 1000)
     
@@ -135,6 +141,9 @@ export async function POST(request: Request) {
 
     const secureHash = generateHash(JC_SALT, params)
     params.pp_SecureHash = secureHash
+
+    console.log('[JazzCash] Final params to send:', JSON.stringify(params, null, 2))
+    console.log('[JazzCash] Redirecting to endpoint:', 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/')
 
     return Response.json({
       endpoint: 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/',

@@ -14,6 +14,7 @@ const CreateCourseSchema = z.object({
   level:       z.string().optional().default('Beginner'),
   price:       z.number().min(0).default(0),
   isFree:      z.boolean().default(false),
+  isPublished: z.boolean().default(false),
 })
 
 // GET /api/courses — public list (published), or admin-scoped list
