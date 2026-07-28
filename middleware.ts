@@ -13,9 +13,13 @@ const isPublicRoute = createRouteMatcher([
   '/terms(.*)',
   '/privacy(.*)',
   '/refund(.*)',
+  '/shipping(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
+  // Payment gateway callbacks — must be public (gateway redirects without user session)
+  '/api/jazzcash/verify(.*)',
+  '/api/rapidgateway/verify(.*)',
 ])
 
 // Clerk v5 middleware — wraps the auth guard
