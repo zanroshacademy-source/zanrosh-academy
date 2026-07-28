@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       pp_TxnType: '', // can leave empty or specific
       pp_IsRegisteredCustomer: 'No',
       pp_TokenizedCardNumber: '',
-      pp_CustomerID: userId.slice(0, 20),
+      pp_CustomerID: userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20),
       pp_CustomerEmail: user?.emailAddresses?.[0]?.emailAddress || 'student@zanroshacademy.com',
       pp_CustomerMobile: customerMobile || '03001234567',
       pp_MerchantID: JC_MERCHANT_ID,
