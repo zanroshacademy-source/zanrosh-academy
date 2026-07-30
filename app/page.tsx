@@ -61,13 +61,7 @@ export default function HomePage() {
               </Link>
             </FadeIn>
 
-            <FadeIn delay={1400} duration={1000}>
-              <div className="liquid-glass border-2 border-[#27187e]/30 px-8 py-4 rounded-2xl bg-white/50 backdrop-blur-md shadow-xl inline-block">
-                <p className="text-xl md:text-2xl font-bold text-[#27187e] tracking-wide">
-                  Learning. Empowering. Succeeding.
-                </p>
-              </div>
-            </FadeIn>
+
             
           </div>
         </main>
