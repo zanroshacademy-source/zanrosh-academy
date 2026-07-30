@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import Topic from '@/models/Topic'
 import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
 import { getServerAuth } from '@/lib/server-auth'
 
 // GET /api/topics?unitId=xxx  — list all topics for a unit

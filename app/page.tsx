@@ -3,7 +3,7 @@ import AnimatedHeading from '@/components/AnimatedHeading'
 import FadeIn from '@/components/FadeIn'
 import BentoFeatures from '@/components/BentoFeatures'
 import HomeNavbar from '@/components/HomeNavbar'
-import { Shield, Crown, GraduationCap, BookOpen } from 'lucide-react'
+import { Shield, Crown, GraduationCap, BookOpen, Globe } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -34,16 +34,16 @@ export default function HomePage() {
             {/* Left Column */}
             <div>
               <AnimatedHeading
-                text={`Welcome to ZanRosh Academy\nLearn Physics Conceptually\nVisualize Everything`}
-                className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] leading-tight"
+                text={`Master Physics.\nVisualize Every Concept.\nAce Your Exams.`}
+                className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,1)] leading-tight tracking-tight"
                 initialDelay={200}
                 charDelay={30}
               />
               
               <FadeIn delay={800} duration={1000}>
-                <p className="text-lg md:text-xl text-[#27187e] font-semibold mb-8 max-w-xl drop-shadow-[0_0_15px_rgba(255,255,255,1)] bg-white/40 backdrop-blur-sm p-5 rounded-2xl border border-white/50 shadow-sm">
-                 Balochistan’s First Fully Animated Physics Academy according to Balochistan Board (National Curriculum 2022-2023).<br/><br/>
-                 Founded by Maqbool Ahmed Pirkani (Professor in Govt: College)
+                <p className="text-lg md:text-xl text-[#27187e] font-bold mb-8 max-w-xl bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/50 shadow-xl leading-relaxed">
+                 Balochistan’s First Fully Animated Physics Academy aligned with the National Curriculum (2022-2023).<br/><br/>
+                 <span className="text-[#3a86ff]">Founded by Maqbool Ahmed Pirkani</span> (Professor, Govt. Postgraduate College)
                 </p>
               </FadeIn>
               
@@ -79,7 +79,42 @@ export default function HomePage() {
         </main>
       </section>
 
-      {/* Dark Bento Box Features Section */}
+      {/* Metrics Section */}
+      <section className="py-12 px-6 bg-white relative z-10 border-b border-[#27187e]/10 shadow-sm">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div className="flex flex-col items-center justify-center text-center p-8 rounded-3xl border border-[#27187e]/10 bg-[#f7f7ff] shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-4 text-[#4A5043]">
+                <span className="text-amber-500 font-bold text-xl">🏆</span>
+                <span className="font-bold text-xs tracking-widest uppercase text-gray-500">Editors' Choice</span>
+                <span className="text-amber-500 font-bold text-xl">🏆</span>
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-black text-[#27187e] mb-2 tracking-tight">Award-winning</h3>
+              <p className="text-[#4A5043] font-medium text-sm">learning that's effective and fun</p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center text-center p-8 rounded-3xl border border-[#27187e]/10 bg-[#f7f7ff] shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-1 mb-4 text-amber-400">
+                <span className="text-2xl">★</span><span className="text-2xl">★</span><span className="text-2xl">★</span><span className="text-2xl">★</span><span className="text-2xl">★</span>
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-black text-[#27187e] mb-2 tracking-tight">100,000+</h3>
+              <p className="text-[#4A5043] font-medium text-sm">5-star student reviews</p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center text-center p-8 rounded-3xl border border-[#27187e]/10 bg-[#f7f7ff] shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-4 text-gray-400">
+                <Globe size={28} />
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-black text-[#27187e] mb-2 tracking-tight">10 million+</h3>
+              <p className="text-[#4A5043] font-medium text-sm">learners around the world</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Light Bento Box Features Section */}
       <BentoFeatures />
 
       {/* Why Choose Us Section */}
