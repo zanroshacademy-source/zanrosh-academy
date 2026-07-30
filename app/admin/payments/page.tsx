@@ -52,7 +52,7 @@ export default async function AdminPaymentsPage() {
           {superAdmin ? 'All Payments' : 'My Payments'}
         </h1>
         <p className="section-subtitle">
-          {superAdmin ? 'All payment submissions across the platform' : 'Payments for your courses — review and approve'}
+          {superAdmin ? 'All payment submissions across the platform' : 'Payments for your courses: review and approve'}
         </p>
       </div>
 

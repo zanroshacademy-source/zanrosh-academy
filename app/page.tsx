@@ -28,52 +28,46 @@ export default function HomePage() {
         </header>
 
         {/* Hero Content */}
-        <main className="relative z-10 px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-end pb-16 lg:pb-24">
-          <div className="lg:grid lg:grid-cols-2 lg:items-end w-full gap-8">
+        <main className="relative z-10 px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-center items-center pb-16 lg:pb-24">
+          <div className="w-full max-w-5xl mx-auto flex flex-col items-center text-center mt-12">
             
-            {/* Left Column */}
-            <div>
-              <AnimatedHeading
-                text={`Master Physics.\nVisualize Every Concept.\nAce Your Exams.`}
-                className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,1)] leading-tight tracking-tight"
-                initialDelay={200}
-                charDelay={30}
-              />
-              
-              <FadeIn delay={800} duration={1000}>
-                <p className="text-base md:text-lg text-[#27187e] font-bold mb-8 max-w-xl bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/50 shadow-xl leading-relaxed">
-                 Balochistan’s First Fully Animated Physics Academy aligned with the National Curriculum (2022-2023).<br/><br/>
-                 <span className="text-[#3a86ff]">Founded by Maqbool Ahmed Pirkani</span> (Professor, Govt. Postgraduate College)
-                </p>
-              </FadeIn>
-              
-              <FadeIn delay={1200} duration={1000} className="flex flex-wrap gap-4">
-                <Link
-                  href="/sign-up"
-                  className="group relative bg-[#27187e] text-white px-10 py-4 rounded-xl font-bold text-lg overflow-hidden transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_8px_30px_rgba(39,24,126,0.55)] active:scale-100"
-                >
-                  <span className="relative z-10">Start Free</span>
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-                </Link>
-                <Link
-                  href="/courses"
-                  className="group liquid-glass border-2 border-[#27187e] text-[#27187e] px-10 py-4 rounded-xl font-bold text-lg bg-white/50 backdrop-blur-md transition-all duration-300 hover:bg-[#27187e] hover:text-white hover:scale-[1.04] hover:shadow-[0_8px_30px_rgba(39,24,126,0.4)] active:scale-100"
-                >
-                  Browse Courses
-                </Link>
-              </FadeIn>
-            </div>
+            <AnimatedHeading
+              text="Master Physics. Visualize Every Concept. Ace Your Exams."
+              className="text-3xl md:text-4xl lg:text-5xl font-black mb-8 text-[#27187e] drop-shadow-[0_0_25px_rgba(255,255,255,1)] leading-tight tracking-tight"
+              initialDelay={200}
+              charDelay={30}
+            />
+            
+            <FadeIn delay={800} duration={1000}>
+              <p className="text-base md:text-lg text-[#27187e] font-bold mb-10 max-w-2xl bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/50 shadow-xl leading-relaxed mx-auto">
+               Balochistan’s First Fully Animated Physics Academy aligned with the National Curriculum (2022 to 2023).<br/><br/>
+               <span className="text-[#3a86ff]">Founded by Maqbool Ahmed Pirkani</span> (Professor, Govt. Postgraduate College)
+              </p>
+            </FadeIn>
+            
+            <FadeIn delay={1200} duration={1000} className="flex flex-wrap justify-center gap-4 mb-12">
+              <Link
+                href="/sign-up"
+                className="group relative bg-[#27187e] text-white px-10 py-4 rounded-xl font-bold text-lg overflow-hidden transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_8px_30px_rgba(39,24,126,0.55)] active:scale-100"
+              >
+                <span className="relative z-10">Start Free</span>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+              </Link>
+              <Link
+                href="/courses"
+                className="group liquid-glass border-2 border-[#27187e] text-[#27187e] px-10 py-4 rounded-xl font-bold text-lg bg-white/50 backdrop-blur-md transition-all duration-300 hover:bg-[#27187e] hover:text-white hover:scale-[1.04] hover:shadow-[0_8px_30px_rgba(39,24,126,0.4)] active:scale-100"
+              >
+                Browse Courses
+              </Link>
+            </FadeIn>
 
-            {/* Right Column */}
-            <div className="flex items-end justify-start lg:justify-end mt-12 lg:mt-0">
-              <FadeIn delay={1400} duration={1000}>
-                <div className="liquid-glass border-2 border-[#27187e]/30 px-8 py-4 rounded-2xl bg-white/50 backdrop-blur-md shadow-xl">
-                  <p className="text-xl md:text-2xl font-bold text-[#27187e] tracking-wide">
-                    Learning. Empowering. Succeeding.
-                  </p>
-                </div>
-              </FadeIn>
-            </div>
+            <FadeIn delay={1400} duration={1000}>
+              <div className="liquid-glass border-2 border-[#27187e]/30 px-8 py-4 rounded-2xl bg-white/50 backdrop-blur-md shadow-xl inline-block">
+                <p className="text-xl md:text-2xl font-bold text-[#27187e] tracking-wide">
+                  Learning. Empowering. Succeeding.
+                </p>
+              </div>
+            </FadeIn>
             
           </div>
         </main>
@@ -124,7 +118,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-black text-[#27187e] mb-4">Why Choose Zanrosh Academy?</h2>
             <p className="text-[#4A5043] text-lg max-w-3xl mx-auto font-medium leading-relaxed">
-              Don't just memorize physics—see it in action! We turn complex formulas into simple visualizations. Whether you are prepping for your board exams or entry tests, our animated video lectures make learning effortless. We don't leave any gaps in your preparation.
+              Don't just memorize physics, see it in action! We turn complex formulas into simple visualizations. Whether you are prepping for your board exams or entry tests, our animated video lectures make learning effortless. We don't leave any gaps in your preparation.
             </p>
           </div>
 
@@ -147,7 +141,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-[#27187e] mb-3">Complete Coverage</h3>
               <p className="text-[#4A5043] font-medium leading-relaxed">
-               Every chapter includes: 100% Board Aligned topics, Complete Lectures, Solved MCQs, Short Questions, and Step-by-Step Solved Numericals. Learn at your own pace!
+               Every chapter includes: 100% Board Aligned topics, Complete Lectures, Solved MCQs, Short Questions, and Step by Step Solved Numericals. Learn at your own pace!
               </p>
             </div>
 

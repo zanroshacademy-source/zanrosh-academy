@@ -24,7 +24,7 @@ export default async function AdminUsersPage({
 }) {
   const { q } = await searchParams
   const superAdmin = await isSuperAdmin()
-  // Regular admins are redirected — this page is super_admin or dev_mode only
+  // Regular admins are redirected, this page is super_admin or dev_mode only
   if (!superAdmin && !DEV_MODE) redirect('/admin')
 
   let users: any[] = await getUsers()
@@ -108,7 +108,7 @@ export default async function AdminUsersPage({
             <tbody>
               {users.map((user: any) => (
                 <tr key={user._id?.toString()} style={{ opacity: user.isBanned ? 0.55 : 1 }}>
-                  <td style={{ fontWeight: 600 }}>{user.fullName || user.name || '—'}</td>
+                  <td style={{ fontWeight: 600 }}>{user.fullName || user.name || 'None'}</td>
                   <td style={{ color: 'var(--text-secondary)' }}>{user.email}</td>
                   <td>
                     <span className={`badge ${
@@ -140,7 +140,7 @@ export default async function AdminUsersPage({
                         ? <span style={{ color: 'var(--emerald)', fontWeight: 600 }}>{new Date(userExpirations[user.clerkId]).toLocaleDateString('en-PK')}</span>
                         : <span style={{ color: 'var(--red)', fontWeight: 600 }}>Expired</span>
                     ) : (
-                      <span style={{ color: 'var(--text-muted)' }}>—</span>
+                      <span style={{ color: 'var(--text-muted)' }}>None</span>
                     )}
                   </td>
                   {superAdmin && (

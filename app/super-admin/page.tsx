@@ -51,7 +51,7 @@ export default async function SuperAdminPage() {
           </div>
           <div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.25rem' }}>Super Admin Dashboard</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Complete platform control & analytics — Zanrosh Academy</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Complete platform control & analytics, Zanrosh Academy</p>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
             <Link href="/admin/users" className="btn-secondary" style={{ fontSize: '0.875rem' }}>Manage Users</Link>
@@ -93,7 +93,7 @@ export default async function SuperAdminPage() {
                   {/* */}
                   {stats.recentPayments.map((pay: any) => (
                     <tr key={pay._id?.toString()}>
-                      <td style={{ fontWeight: 500 }}>{typeof pay.courseId === 'object' ? `📚 ${pay.courseId?.title}` : typeof pay.chapterId === 'object' ? `📖 ${pay.chapterId?.title}` : '—'}</td>
+                      <td style={{ fontWeight: 500 }}>{typeof pay.courseId === 'object' ? `📚 ${pay.courseId?.title}` : typeof pay.chapterId === 'object' ? `📖 ${pay.chapterId?.title}` : 'None'}</td>
                       <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pay.userId?.slice(0, 16)}…</td>
                       <td style={{ textTransform: 'capitalize' }}>{pay.method}</td>
                       <td style={{ fontWeight: 600 }}>{formatPKR(pay.amount)}</td>

@@ -89,7 +89,7 @@ export default async function AdminOverviewPage() {
         </div>
 
         {stats.pendingPayments.length === 0 ? (
-          <div className="alert alert-success">✅ No pending payments — all clear!</div>
+          <div className="alert alert-success">✅ No pending payments, all clear!</div>
         ) : (
           <div className="table-wrapper">
             <table>
