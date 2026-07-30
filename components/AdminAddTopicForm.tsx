@@ -146,16 +146,16 @@ export default function AdminAddTopicForm({
   }
 
   return (
-    <div className="bg-[#0d0f1f] border border-[#27187e]/30 rounded-2xl p-6 relative">
+    <div className="bg-white border border-[#27187e]/10 rounded-2xl p-6 relative">
       {onClose && (
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
           <X size={18} />
         </button>
       )}
 
-      <h4 className="font-black text-white text-base mb-1 flex items-center gap-2">
-        <Video size={16} className="text-blue-400" /> Add Topic
-        <span className="ml-auto text-xs font-bold text-white/30">{existingCount}/{MAX_TOPICS} topics</span>
+      <h4 className="font-black text-[#27187e] text-base mb-1 flex items-center gap-2">
+        <Video size={16} className="text-[#3a86ff]" /> Add Topic
+        <span className="ml-auto text-xs font-bold text-gray-400">{existingCount}/{MAX_TOPICS} topics</span>
       </h4>
       {remaining <= 5 && (
         <p className="text-amber-400 text-xs font-bold mb-4">
@@ -174,11 +174,11 @@ export default function AdminAddTopicForm({
           <div className="flex flex-col gap-4">
             {/* Title */}
             <div>
-              <label className="block text-white/60 font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Title *</label>
+              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Title *</label>
               <input
                 type="text"
                 placeholder="e.g. Newton's First Law"
-                className="w-full bg-white/5 border border-white/10 focus:border-blue-500/50 focus:bg-white/8 rounded-xl px-4 py-2.5 outline-none transition-all text-white font-medium placeholder-white/20 text-sm"
+                className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium placeholder-gray-400 text-sm"
                 value={form.title}
                 onChange={e => setForm({ ...form, title: e.target.value })}
                 required minLength={2}
@@ -187,67 +187,67 @@ export default function AdminAddTopicForm({
 
             {/* Description */}
             <div>
-              <label className="block text-white/60 font-bold mb-1.5 text-xs uppercase tracking-wider">Description</label>
+              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Description</label>
               <textarea
                 rows={3}
                 placeholder="What will students learn?"
-                className="w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded-xl px-4 py-2.5 outline-none transition-all text-white font-medium placeholder-white/20 resize-y text-sm"
+                className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium placeholder-gray-400 resize-y text-sm"
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
               />
             </div>
 
             {/* Publish */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div className="relative">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center">
                 <input
                   type="checkbox"
                   checked={form.isPublished}
                   onChange={e => setForm({ ...form, isPublished: e.target.checked })}
-                  className="appearance-none w-5 h-5 border-2 border-white/20 rounded-md checked:bg-blue-500 checked:border-blue-500 transition-colors cursor-pointer"
+                  className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:bg-[#27187e] checked:border-[#27187e] transition-colors cursor-pointer"
                 />
-                <CheckCircle size={12} className={`absolute inset-0 m-auto text-white pointer-events-none transition-opacity ${form.isPublished ? 'opacity-100' : 'opacity-0'}`} />
+                <CheckCircle size={13} className={`absolute text-white pointer-events-none transition-opacity ${form.isPublished ? 'opacity-100' : 'opacity-0'}`} />
               </div>
-              <span className="font-semibold text-sm text-white/70">Publish immediately</span>
+              <span className="font-semibold text-sm text-[#4A5043] group-hover:text-[#27187e] transition-colors">Publish immediately</span>
             </label>
           </div>
 
           <div className="flex flex-col gap-4">
             {/* Video Upload */}
             <div>
-              <label className="block text-white/60 font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Video *</label>
-              <div className="bg-white/5 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center p-6 text-center relative overflow-hidden hover:border-blue-500/40 transition-colors h-[160px]">
+              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Video *</label>
+              <div className="bg-[#f7f7ff] border-2 border-dashed border-[#27187e]/20 rounded-xl flex flex-col items-center justify-center p-6 text-center relative overflow-hidden hover:border-[#27187e]/40 transition-colors h-[160px]">
                 {videoUrl ? (
-                  <div className="flex flex-col items-center gap-2 text-emerald-400">
+                  <div className="flex flex-col items-center gap-2 text-emerald-600">
                     <CheckCircle size={36} />
                     <span className="font-bold text-sm">Video Ready!</span>
                     <button type="button" onClick={() => { setVideoUrl(''); setPublicId(''); setDuration('') }}
-                      className="text-xs text-red-400 underline">Replace video</button>
+                      className="text-xs text-red-500 underline">Replace video</button>
                   </div>
                 ) : (
                   <>
-                    <Video size={28} className="text-white/20 mb-3" />
-                    <p className="text-white/30 text-xs mb-3">MP4 · MOV · up to 2 hours</p>
+                    <Video size={28} className="text-gray-300 mb-3" />
+                    <p className="text-gray-400 text-xs mb-3">MP4 · MOV · up to 2 hours</p>
                     <input type="file" accept="video/*" id="newTopicVideo" className="hidden"
                       onChange={handleVideoUpload} disabled={uploading} />
                     <label htmlFor="newTopicVideo"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold cursor-pointer hover:scale-105 transition-transform flex items-center gap-2 text-sm">
+                      className="bg-[#3a86ff] text-white px-4 py-2 rounded-xl font-bold cursor-pointer hover:scale-105 transition-transform flex items-center gap-2 text-sm">
                       {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Video</>}
                     </label>
                   </>
                 )}
 
                 {uploading && (
-                  <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl p-4">
-                    <div className="w-12 h-12 rounded-full border-4 border-white/10 border-t-blue-400 animate-spin mb-3" />
-                    <span className="text-blue-400 font-black text-2xl mb-1">{uploadProgress}%</span>
-                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 transition-all duration-300 rounded-full"
+                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-xl p-4">
+                    <div className="w-12 h-12 rounded-full border-4 border-gray-200 border-t-[#3a86ff] animate-spin mb-3" />
+                    <span className="text-[#3a86ff] font-black text-2xl mb-1">{uploadProgress}%</span>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                      <div className="h-full bg-gradient-to-r from-[#3a86ff] to-emerald-400 transition-all duration-300 rounded-full"
                         style={{ width: `${uploadProgress}%` }} />
                     </div>
-                    <span className="text-white/40 text-xs text-center">
+                    <span className="text-gray-500 text-xs text-center">
                       Uploading in chunks<br />
-                      <span className="text-red-400 font-bold">Do not close this tab!</span>
+                      <span className="text-red-500 font-bold">Do not close this tab!</span>
                     </span>
                   </div>
                 )}
@@ -256,9 +256,9 @@ export default function AdminAddTopicForm({
 
             {/* Duration */}
             <div>
-              <label className="block text-white/60 font-bold mb-1.5 text-xs uppercase tracking-wider">Duration (Minutes)</label>
+              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Duration (Minutes)</label>
               <input type="number" placeholder="Auto-filled on upload"
-                className="w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded-xl px-4 py-2.5 outline-none transition-all text-white font-medium text-sm"
+                className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium text-sm"
                 value={duration} onChange={e => setDuration(e.target.value)} min={0} />
             </div>
           </div>
@@ -270,15 +270,15 @@ export default function AdminAddTopicForm({
           </div>
         )}
 
-        <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
           <button type="submit"
-            className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-blue-600/20 transition-all disabled:opacity-50 disabled:hover:scale-100 text-sm"
+            className="bg-[#27187e] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-[#27187e]/20 transition-all disabled:opacity-50 disabled:hover:scale-100 text-sm"
             disabled={loading || uploading || existingCount >= MAX_TOPICS}>
             {loading ? <><Loader2 size={16} className="animate-spin" /> Creating...</> : <><CheckCircle size={16} /> Create Topic</>}
           </button>
           {onClose && (
             <button type="button" onClick={onClose}
-              className="px-5 py-2.5 rounded-xl font-bold text-white/50 hover:text-white hover:bg-white/5 transition-colors text-sm">
+              className="px-5 py-2.5 rounded-xl font-bold text-gray-400 hover:text-[#4A5043] hover:bg-gray-100 transition-colors text-sm">
               Cancel
             </button>
           )}

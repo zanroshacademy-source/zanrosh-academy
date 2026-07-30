@@ -60,6 +60,12 @@ export async function POST(req: NextRequest) {
       isPublished: isPublished ?? false,
     })
 
+    // Auto-publish parent Unit and Course if this Topic is published
+    if (isPublished) {
+      await Chapter.findByIdAndUpdate(unitId, { isPublished: true })
+      await Course.findByIdAndUpdate(courseId, { isPublished: true })
+    }
+
     return NextResponse.json({ topic }, { status: 201 })
   } catch (err) {
     console.error('[POST /api/topics]', err)
