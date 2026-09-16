@@ -1,7 +1,3 @@
-import { connectDB } from '@/lib/db'
-import Payment from '@/models/Payment'
-import Purchase from '@/models/Purchase'
-import Chapter from '@/models/Chapter'
 import { NextResponse } from 'next/server'
 
 const EP_CONFIRM_URL = 'https://easypay.easypaisa.com.pk/easypay/Confirm.jsf'

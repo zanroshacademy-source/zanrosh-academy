@@ -121,7 +121,7 @@ export async function POST(request: Request) {
   const appUrl = getAppUrl()
   try {
     // Try to read as form-data first, fall back to URL params
-    let params: Record<string, string> = {}
+    const params: Record<string, string> = {}
     const contentType = request.headers.get('content-type') || ''
 
     if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
