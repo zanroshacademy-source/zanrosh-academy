@@ -18,34 +18,65 @@ async function getCourseRedirectId(payment: any): Promise<string | null> {
   return null
 }
 
+/**
+ * Core verification handler — called by both GET and POST.
+ * Creates DB records ONLY after Easypaisa confirms a successful payment.
+ */
 async function processVerification(params: Record<string, string>, appUrl: string) {
-  const status       = params['status']        || params['Status']
-  const desc         = params['desc']          || params['Desc'] || ''
-  const orderRefNum  = params['orderRefNum']   || params['orderRefNumber'] || params['orderRef'] || ''
+  const status      = params['status']     || params['Status']     || ''
+  const desc        = params['desc']       || params['Desc']       || ''
+  const orderRefNum = params['orderRefNum']|| params['orderRef']   || ''
 
-  console.log('[Easypaisa] verify params — status:', status, 'desc:', desc, 'orderRef:', orderRefNum)
+  // Session data carried through the URL chain from create-session
+  const userId   = params['userId']   || ''
+  const itemId   = params['itemId']   || ''
+  const itemType = params['itemType'] || 'chapter'
+  const amount   = parseFloat(params['amount'] || '0')
 
-  if (!orderRefNum) {
-    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_ref', appUrl), 303)
+  console.log('[Easypaisa] verify — status:', status, 'desc:', desc, 'orderRef:', orderRefNum, 'userId:', userId, 'itemId:', itemId)
+
+  if (!orderRefNum || !userId || !itemId) {
+    console.error('[Easypaisa] verify missing required params:', params)
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_verify_params', appUrl), 303)
   }
 
   await connectDB()
 
-  const payment = await Payment.findOne({ easypaisaRef: orderRefNum })
-  if (!payment) {
-    console.error('[Easypaisa] Payment not found for orderRef:', orderRefNum)
-    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_payment_not_found', appUrl), 303)
-  }
-
   if (status === 'Success' || status === 'SUCCESS') {
-    // ── Payment succeeded ─────────────────────────────────────────────────
-    payment.status = 'approved'
-    payment.gatewayResponse = params
-    await payment.save()
+    // ── Payment succeeded — create DB records now ─────────────────────────
+
+    // Check for duplicate (Easypaisa can call verify more than once)
+    const existing = await Payment.findOne({ easypaisaRef: orderRefNum })
+    if (existing && existing.status === 'approved') {
+      console.log('[Easypaisa] Duplicate verify call for approved payment:', orderRefNum)
+      const courseId = await getCourseRedirectId(existing)
+      if (courseId) return NextResponse.redirect(new URL(`/courses/${courseId}`, appUrl), 303)
+      return NextResponse.redirect(new URL('/dashboard', appUrl), 303)
+    }
+
+    const paymentData: any = {
+      userId,
+      method:        'easypaisa',
+      amount,
+      transactionId: orderRefNum,
+      screenshotUrl: 'easypaisa_checkout',
+      status:        'approved',
+      easypaisaRef:  orderRefNum,
+      gatewayResponse: params,
+    }
+    if (itemType === 'course') paymentData.courseId = itemId
+    else paymentData.chapterId = itemId
+
+    const payment = existing || await Payment.create(paymentData)
+    if (existing) {
+      existing.status = 'approved'
+      existing.gatewayResponse = params
+      await existing.save()
+    }
 
     let expiresAt: Date | null = null
-    if (payment.chapterId) {
-      const chapter = await Chapter.findById(payment.chapterId).select('accessDays').lean()
+    if (itemType === 'chapter') {
+      const chapter = await Chapter.findById(itemId).select('accessDays').lean()
       const days = (chapter as any)?.accessDays ?? 15
       expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
     }
@@ -57,13 +88,12 @@ async function processVerification(params: Record<string, string>, appUrl: strin
       await existingPurchase.save()
     } else {
       const pd: any = {
-        userId:    payment.userId,
+        userId,
         paymentId: payment._id,
         status:    'approved',
-        courseId:  payment.courseId,
-        chapterId: payment.chapterId,
       }
-      if (expiresAt) pd.expiresAt = expiresAt
+      if (itemType === 'course') pd.courseId = itemId
+      else { pd.chapterId = itemId; if (expiresAt) pd.expiresAt = expiresAt }
       await Purchase.create(pd)
     }
 
@@ -73,21 +103,9 @@ async function processVerification(params: Record<string, string>, appUrl: strin
 
   } else {
     // ── Payment failed / cancelled ────────────────────────────────────────
-    payment.status = 'rejected'
-    payment.gatewayResponse = params
-    await payment.save()
-
-    await Purchase.findOneAndUpdate(
-      { paymentId: payment._id },
-      { status: 'rejected' }
-    )
-
-    const redirectBase = payment.chapterId
-      ? `/buy/${payment.chapterId}`
-      : payment.courseId
-        ? `/buy/${payment.courseId}`
-        : '/dashboard'
-    const errorMsg = desc || 'Payment failed'
+    console.log('[Easypaisa] Payment failed. desc:', desc)
+    const redirectBase = itemId ? `/buy/${itemId}` : '/dashboard'
+    const errorMsg = desc || 'Payment failed or cancelled'
     return NextResponse.redirect(
       new URL(`${redirectBase}?error=payment_failed&msg=${encodeURIComponent(errorMsg)}`, appUrl),
       303
@@ -96,8 +114,8 @@ async function processVerification(params: Record<string, string>, appUrl: strin
 }
 
 /**
- * GET /api/easypaisa/verify?orderRef=EP...&status=Success&desc=0000&orderRefNum=EP...
- * Easypaisa may use GET to send the final transaction result.
+ * GET /api/easypaisa/verify
+ * Easypaisa sends final status via GET.
  */
 export async function GET(request: Request) {
   const appUrl = getAppUrl(request)
@@ -105,7 +123,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const params: Record<string, string> = {}
     searchParams.forEach((v, k) => { params[k] = v })
-    console.log('[Easypaisa] verify GET params:', JSON.stringify(params))
+    console.log('[Easypaisa] verify GET:', JSON.stringify(params))
     return await processVerification(params, appUrl)
   } catch (err: any) {
     console.error('[Easypaisa] verify GET error:', err)
@@ -115,30 +133,25 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/easypaisa/verify
- * Easypaisa may POST the final transaction result as form-data.
+ * Easypaisa sends final status via POST form-data.
  */
 export async function POST(request: Request) {
   const appUrl = getAppUrl(request)
   try {
-    // Try to read as form-data first, fall back to URL params
     const params: Record<string, string> = {}
-    const contentType = request.headers.get('content-type') || ''
 
+    // Grab URL query params first (our session data is here)
+    const urlParams = new URL(request.url).searchParams
+    urlParams.forEach((v, k) => { params[k] = v })
+
+    // Then overlay with form body (Easypaisa's status fields)
+    const contentType = request.headers.get('content-type') || ''
     if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
       const formData = await request.formData()
       formData.forEach((v, k) => { params[k] = v.toString() })
-    } else {
-      const { searchParams } = new URL(request.url)
-      searchParams.forEach((v, k) => { params[k] = v })
     }
 
-    // Also grab orderRef from query string (we put it there in callback)
-    const urlParams = new URL(request.url).searchParams
-    if (!params['orderRef'] && urlParams.get('orderRef')) {
-      params['orderRef'] = urlParams.get('orderRef')!
-    }
-
-    console.log('[Easypaisa] verify POST params:', JSON.stringify(params))
+    console.log('[Easypaisa] verify POST:', JSON.stringify(params))
     return await processVerification(params, appUrl)
   } catch (err: any) {
     console.error('[Easypaisa] verify POST error:', err)
