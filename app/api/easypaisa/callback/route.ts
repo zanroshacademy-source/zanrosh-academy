@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 
 const EP_CONFIRM_URL = 'https://easypay.easypaisa.com.pk/easypay/Confirm.jsf'
 
-const getAppUrl = () => {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return raw.endsWith('/') ? raw.slice(0, -1) : raw
+/** Derives base URL from the live incoming request — always correct on production */
+const getAppUrl = (req: Request) => {
+  const u = new URL(req.url)
+  return `${u.protocol}//${u.host}`
 }
 
 /**
@@ -14,17 +15,16 @@ const getAppUrl = () => {
  * This handler:
  *   1. Reads auth_token and orderRef from query params
  *   2. POSTs auth_token + our verify URL to Easypaisa Confirm.jsf (server-to-server)
- *   3. Redirects the user to a waiting/processing page
- *      (Easypaisa will then call our /api/easypaisa/verify with final status)
+ *   3. Redirects the user to dashboard with a processing message
  */
 export async function GET(request: Request) {
-  const appUrl = getAppUrl()
+  const appUrl = getAppUrl(request)
   try {
     const { searchParams } = new URL(request.url)
-    const authToken  = searchParams.get('auth_token') || ''
-    const orderRef   = searchParams.get('orderRef') || ''
+    const authToken = searchParams.get('auth_token') || ''
+    const orderRef  = searchParams.get('orderRef') || ''
 
-    console.log('[Easypaisa] callback received. auth_token:', authToken, 'orderRef:', orderRef)
+    console.log('[Easypaisa] callback GET. auth_token:', authToken, 'orderRef:', orderRef, 'appUrl:', appUrl)
 
     if (!authToken || !orderRef) {
       console.error('[Easypaisa] callback missing auth_token or orderRef')
@@ -34,6 +34,8 @@ export async function GET(request: Request) {
     // postBackURL2 — where Easypaisa will send final status/desc/orderRefNumber
     const verifyUrl = `${appUrl}/api/easypaisa/verify?orderRef=${encodeURIComponent(orderRef)}`
 
+    console.log('[Easypaisa] Posting to Confirm.jsf. verifyUrl:', verifyUrl)
+
     // Server-side POST to Easypaisa Confirm.jsf to complete the handshake
     const confirmRes = await fetch(EP_CONFIRM_URL, {
       method: 'POST',
@@ -42,18 +44,17 @@ export async function GET(request: Request) {
         auth_token:  authToken,
         postBackURL: verifyUrl,
       }).toString(),
-      redirect: 'manual', // Easypaisa may redirect; we don't follow it server-side
+      redirect: 'manual',
     })
 
     console.log('[Easypaisa] Confirm.jsf response status:', confirmRes.status)
 
-    // Redirect user to a "processing" page while Easypaisa finalises
     return NextResponse.redirect(
-      new URL(`/api/easypaisa/processing?orderRef=${encodeURIComponent(orderRef)}`, appUrl),
+      new URL('/dashboard?easypaisa=processing', appUrl),
       303
     )
   } catch (err: any) {
-    console.error('[Easypaisa] callback error:', err)
+    console.error('[Easypaisa] callback GET error:', err)
     return NextResponse.redirect(new URL('/dashboard?error=easypaisa_callback_error', appUrl), 303)
   }
 }
@@ -61,16 +62,15 @@ export async function GET(request: Request) {
 /**
  * POST /api/easypaisa/callback
  * Some Easypaisa configurations POST to the postBackURL instead of GET.
- * We handle both.
  */
 export async function POST(request: Request) {
-  const appUrl = getAppUrl()
+  const appUrl = getAppUrl(request)
   try {
     const formData = await request.formData()
     const authToken = formData.get('auth_token')?.toString() || ''
     const orderRef  = (new URL(request.url)).searchParams.get('orderRef') || ''
 
-    console.log('[Easypaisa] callback POST. auth_token:', authToken, 'orderRef:', orderRef)
+    console.log('[Easypaisa] callback POST. auth_token:', authToken, 'orderRef:', orderRef, 'appUrl:', appUrl)
 
     if (!authToken || !orderRef) {
       return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_token', appUrl), 303)
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.redirect(
-      new URL(`/api/easypaisa/processing?orderRef=${encodeURIComponent(orderRef)}`, appUrl),
+      new URL('/dashboard?easypaisa=processing', appUrl),
       303
     )
   } catch (err: any) {

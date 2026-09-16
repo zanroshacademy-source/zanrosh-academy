@@ -4,9 +4,9 @@ import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
 import { NextResponse } from 'next/server'
 
-const getAppUrl = () => {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return raw.endsWith('/') ? raw.slice(0, -1) : raw
+const getAppUrl = (req: Request) => {
+  const u = new URL(req.url)
+  return `${u.protocol}//${u.host}`
 }
 
 async function getCourseRedirectId(payment: any): Promise<string | null> {
@@ -100,7 +100,7 @@ async function processVerification(params: Record<string, string>, appUrl: strin
  * Easypaisa may use GET to send the final transaction result.
  */
 export async function GET(request: Request) {
-  const appUrl = getAppUrl()
+  const appUrl = getAppUrl(request)
   try {
     const { searchParams } = new URL(request.url)
     const params: Record<string, string> = {}
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
     return await processVerification(params, appUrl)
   } catch (err: any) {
     console.error('[Easypaisa] verify GET error:', err)
-    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_verify_error', getAppUrl()), 303)
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_verify_error', getAppUrl(request)), 303)
   }
 }
 
@@ -118,7 +118,7 @@ export async function GET(request: Request) {
  * Easypaisa may POST the final transaction result as form-data.
  */
 export async function POST(request: Request) {
-  const appUrl = getAppUrl()
+  const appUrl = getAppUrl(request)
   try {
     // Try to read as form-data first, fall back to URL params
     const params: Record<string, string> = {}
@@ -142,6 +142,6 @@ export async function POST(request: Request) {
     return await processVerification(params, appUrl)
   } catch (err: any) {
     console.error('[Easypaisa] verify POST error:', err)
-    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_verify_error', getAppUrl()), 303)
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_verify_error', getAppUrl(request)), 303)
   }
 }

@@ -18,9 +18,10 @@ const InitSessionSchema = z.object({
   itemType: z.enum(['course', 'chapter']),
 })
 
-const getAppUrl = () => {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return raw.endsWith('/') ? raw.slice(0, -1) : raw
+/** Always resolves to the real host of the incoming request — works on any deployment */
+const getAppUrl = (req: Request) => {
+  const u = new URL(req.url)
+  return `${u.protocol}//${u.host}`
 }
 
 /**
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     // Generate unique order reference
     const orderRefNum = 'EP' + Date.now() + Math.floor(Math.random() * 1000)
 
-    const appUrl = getAppUrl()
+    const appUrl = getAppUrl(request)
     // postBackURL1 = our callback handler (receives auth_token from Easypaisa)
     const postBackURL1 = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
     const expiryDate   = getExpiryDate()
