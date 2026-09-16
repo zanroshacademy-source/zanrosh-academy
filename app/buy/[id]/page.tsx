@@ -4,9 +4,7 @@ import Chapter from '@/models/Chapter'
 import Topic from '@/models/Topic'
 import { redirect, notFound } from 'next/navigation'
 import { formatPKR } from '@/lib/utils'
-import SafepayCheckoutButton from '@/components/SafepayCheckoutButton'
-import RapidGatewayCheckoutButton from '@/components/RapidGatewayCheckoutButton'
-import JazzCashCheckoutButton from '@/components/JazzCashCheckoutButton'
+import EasypaisaCheckoutButton from '@/components/EasypaisaCheckoutButton'
 import Purchase from '@/models/Purchase'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle, Clock, Lock, BookOpen, Video } from 'lucide-react'
@@ -88,7 +86,7 @@ export default async function BuyPage({
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-[#27187e] mb-1">Secure Checkout</h2>
-                  <p className="text-[#4A5043]/70 text-sm">Choose your preferred payment gateway</p>
+                  <p className="text-[#4A5043]/70 text-sm">Pay securely via Easypaisa</p>
                 </div>
               </div>
 
@@ -111,31 +109,7 @@ export default async function BuyPage({
                         <Clock size={16} /> Your previous access has expired. Please renew.
                       </div>
                     )}
-                    <SafepayCheckoutButton
-                      itemId={id}
-                      itemType="chapter"
-                    />
-
-                    {/* OR Divider */}
-                    <div className="flex items-center gap-3 my-1">
-                      <div className="flex-1 h-px bg-gray-200" />
-                      <span className="text-xs font-bold text-[#4A5043]/50 uppercase tracking-widest">or</span>
-                      <div className="flex-1 h-px bg-gray-200" />
-                    </div>
-
-                    <RapidGatewayCheckoutButton
-                      itemId={id}
-                      itemType="chapter"
-                    />
-
-                    {/* OR Divider */}
-                    <div className="flex items-center gap-3 my-1 mt-4">
-                      <div className="flex-1 h-px bg-gray-200" />
-                      <span className="text-xs font-bold text-[#4A5043]/50 uppercase tracking-widest">or</span>
-                      <div className="flex-1 h-px bg-gray-200" />
-                    </div>
-
-                    <JazzCashCheckoutButton
+                    <EasypaisaCheckoutButton
                       itemId={id}
                       itemType="chapter"
                     />
