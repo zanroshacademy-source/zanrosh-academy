@@ -56,23 +56,27 @@ export async function GET(request: Request) {
     }).toString()
     const verifyUrl = `${appUrl}/api/easypaisa/verify?${verifyParams}`
 
-    console.log('[Easypaisa] POSTing to Confirm.jsf. verifyUrl:', verifyUrl)
+    console.log('[Easypaisa] Redirecting customer to Confirm.jsf. verifyUrl:', verifyUrl)
 
-    await fetch(EP_CONFIRM_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        auth_token:  authToken,
-        postBackURL: verifyUrl,
-      }).toString(),
-      redirect: 'manual',
+    // We must POST auth_token to Confirm.jsf from the CUSTOMER'S BROWSER,
+    // so they see the Easypaisa UI. A server-side fetch hides the UI.
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Redirecting to Easypaisa...</title></head>
+      <body onload="document.forms[0].submit()">
+        <form action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
+          <input type="hidden" name="auth_token" value="${authToken}" />
+          <input type="hidden" name="postBackURL" value="${verifyUrl}" />
+        </form>
+        <p>Redirecting to secure checkout...</p>
+      </body>
+      </html>
+    `
+
+    return new NextResponse(html, {
+      headers: { 'Content-Type': 'text/html' }
     })
-
-    // Show a user-friendly "processing" page while Easypaisa finalises
-    return NextResponse.redirect(
-      new URL(`/buy/${itemId}?easypaisa=processing`, appUrl),
-      303
-    )
   } catch (err: any) {
     console.error('[Easypaisa] callback GET error:', err)
     return NextResponse.redirect(new URL(`/buy/${itemId}?error=easypaisa_error`, appUrl), 303)
@@ -111,14 +115,23 @@ export async function POST(request: Request) {
     const verifyParams = new URLSearchParams({ orderRef, userId, itemId, itemType, amount }).toString()
     const verifyUrl = `${appUrl}/api/easypaisa/verify?${verifyParams}`
 
-    await fetch(EP_CONFIRM_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ auth_token: authToken, postBackURL: verifyUrl }).toString(),
-      redirect: 'manual',
-    })
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Redirecting to Easypaisa...</title></head>
+      <body onload="document.forms[0].submit()">
+        <form action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
+          <input type="hidden" name="auth_token" value="${authToken}" />
+          <input type="hidden" name="postBackURL" value="${verifyUrl}" />
+        </form>
+        <p>Redirecting to secure checkout...</p>
+      </body>
+      </html>
+    `
 
-    return NextResponse.redirect(new URL(`/buy/${itemId}?easypaisa=processing`, appUrl), 303)
+    return new NextResponse(html, {
+      headers: { 'Content-Type': 'text/html' }
+    })
   } catch (err: any) {
     console.error('[Easypaisa] callback POST error:', err)
     return NextResponse.redirect(new URL(`/buy/${itemId}?error=easypaisa_error`, appUrl), 303)
