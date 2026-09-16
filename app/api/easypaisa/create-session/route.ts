@@ -85,7 +85,8 @@ export async function POST(request: Request) {
     if (price <= 0) return apiError('Invalid price', 400)
     if (!EP_STORE_ID) return apiError('Easypaisa is not configured on this server', 500)
 
-    const orderRefNum = 'EP' + Date.now() + Math.floor(Math.random() * 1000)
+    // Use a 12-digit numeric order reference (Easypaisa fails if it's too long or has letters)
+    const orderRefNum = Math.floor(100000 + Math.random() * 900000).toString() + Math.floor(100000 + Math.random() * 900000).toString()
     const appUrl      = getAppUrl(request)
 
     // ── We do NOT create DB records here ──────────────────────────────────────
