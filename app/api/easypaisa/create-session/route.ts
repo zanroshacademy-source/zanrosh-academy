@@ -114,6 +114,7 @@ export async function POST(request: Request) {
       orderRefNum:  orderRefNum,
       expiryDate:   getExpiryDate(),
       autoRedirect: '1',
+      paymentMethod: 'MA_PAYMENT_METHOD',
     }
 
     if (EP_HASH_KEY) {
