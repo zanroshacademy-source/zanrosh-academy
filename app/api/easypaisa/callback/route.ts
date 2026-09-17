@@ -12,128 +12,100 @@ const getAppUrl = (req: Request) => {
 }
 
 /**
- * GET /api/easypaisa/callback?auth_token=TOKEN&orderRef=EP...&userId=...&itemId=...
+ * GET /api/easypaisa/callback?auth_token=TOKEN&orderRef=XXXXXX
  *
  * Easypaisa redirects the customer here after they fill the checkout form.
- * We forward the auth_token to Confirm.jsf then carry session data to verify.
+ * We auto-submit the auth_token to Confirm.jsf from the customer's browser.
+ *
+ * IMPORTANT: The postBackURL sent to Confirm.jsf must be clean (no complex query params).
+ * Session data is stored in the Payment record (keyed by easypaisaRef = orderRef).
  */
 export async function GET(request: Request) {
-  const appUrl = getAppUrl(request)
+  const appUrl    = getAppUrl(request)
   const { searchParams } = new URL(request.url)
 
   const authToken = searchParams.get('auth_token') || ''
   const orderRef  = searchParams.get('orderRef')   || ''
-  const userId    = searchParams.get('userId')     || ''
-  const itemId    = searchParams.get('itemId')     || ''
-  const itemType  = searchParams.get('itemType')   || ''
-  const amount    = searchParams.get('amount')     || ''
 
-  console.log('[Easypaisa] callback GET. sandbox:', EP_SANDBOX, 'auth_token:', authToken, 'orderRef:', orderRef)
+  console.log('[Easypaisa] callback GET. auth_token:', authToken ? 'YES' : 'NO', 'orderRef:', orderRef)
 
   if (!authToken) {
-    // Easypaisa redirected back without auth_token — user cancelled or store ID is wrong
-    console.error('[Easypaisa] No auth_token received — Easypaisa rejected the request')
-    const redirectBase = itemId ? `/buy/${itemId}` : '/dashboard'
-    return NextResponse.redirect(
-      new URL(`${redirectBase}?error=easypaisa_cancelled`, appUrl),
-      303
-    )
+    // No auth_token = Easypaisa rejected (invalid store, cancelled etc.)
+    console.error('[Easypaisa] No auth_token — Easypaisa rejected at Index.jsf')
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_cancelled', appUrl), 303)
   }
 
-  if (!orderRef || !userId || !itemId) {
-    console.error('[Easypaisa] callback missing required params')
-    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_params', appUrl), 303)
+  if (!orderRef) {
+    console.error('[Easypaisa] No orderRef in callback')
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_ref', appUrl), 303)
   }
 
-  try {
-    // Build verifyUrl carrying all session context
-    const verifyParams = new URLSearchParams({
-      orderRef,
-      userId,
-      itemId,
-      itemType,
-      amount,
-    }).toString()
-    const verifyUrl = `${appUrl}/api/easypaisa/verify?${verifyParams}`
+  // Clean verify URL — just the orderRef. Session data is in the DB.
+  const verifyUrl = `${appUrl}/api/easypaisa/verify?orderRef=${orderRef}`
 
-    console.log('[Easypaisa] Redirecting customer to Confirm.jsf. verifyUrl:', verifyUrl)
+  console.log('[Easypaisa] Auto-submitting to Confirm.jsf. verifyUrl:', verifyUrl)
 
-    // We must POST auth_token to Confirm.jsf from the CUSTOMER'S BROWSER,
-    // so they see the Easypaisa UI. A server-side fetch hides the UI.
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><title>Redirecting to Easypaisa...</title></head>
-      <body onload="document.forms[0].submit()">
-        <form action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
-          <input type="hidden" name="auth_token" value="${authToken}" />
-          <input type="hidden" name="postBackURL" value="${verifyUrl}" />
-        </form>
-        <p>Redirecting to secure checkout...</p>
-      </body>
-      </html>
-    `
+  // Return an HTML page that auto-submits the form to Confirm.jsf IN THE CUSTOMER'S BROWSER.
+  // This is the only correct approach — a server-side fetch would hide the Easypaisa UI.
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Completing Payment...</title>
+  <meta charset="utf-8"/>
+  <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f7f7ff;}</style>
+</head>
+<body>
+  <p>Completing your Easypaisa payment, please wait...</p>
+  <form id="f" action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
+    <input type="hidden" name="auth_token" value="${authToken}" />
+    <input type="hidden" name="postBackURL" value="${verifyUrl}" />
+  </form>
+  <script>document.getElementById('f').submit();</script>
+</body>
+</html>`
 
-    return new NextResponse(html, {
-      headers: { 'Content-Type': 'text/html' }
-    })
-  } catch (err: any) {
-    console.error('[Easypaisa] callback GET error:', err)
-    return NextResponse.redirect(new URL(`/buy/${itemId}?error=easypaisa_error`, appUrl), 303)
-  }
+  return new NextResponse(html, { headers: { 'Content-Type': 'text/html' } })
 }
 
 /**
- * POST /api/easypaisa/callback — some configs POST instead of GET
+ * POST /api/easypaisa/callback — handles POST variant (some configs)
  */
 export async function POST(request: Request) {
   const appUrl    = getAppUrl(request)
   const urlSearch = new URL(request.url).searchParams
 
   const orderRef = urlSearch.get('orderRef') || ''
-  const userId   = urlSearch.get('userId')   || ''
-  const itemId   = urlSearch.get('itemId')   || ''
-  const itemType = urlSearch.get('itemType') || ''
-  const amount   = urlSearch.get('amount')   || ''
+  let authToken  = urlSearch.get('auth_token') || ''
 
-  let authToken = ''
   try {
     const formData = await request.formData()
-    authToken = formData.get('auth_token')?.toString() || ''
+    authToken = formData.get('auth_token')?.toString() || authToken
   } catch {
-    authToken = urlSearch.get('auth_token') || ''
+    // ignore
   }
 
-  console.log('[Easypaisa] callback POST. auth_token:', authToken, 'orderRef:', orderRef)
+  console.log('[Easypaisa] callback POST. auth_token:', authToken ? 'YES' : 'NO', 'orderRef:', orderRef)
 
   if (!authToken) {
-    const redirectBase = itemId ? `/buy/${itemId}` : '/dashboard'
-    return NextResponse.redirect(new URL(`${redirectBase}?error=easypaisa_cancelled`, appUrl), 303)
+    return NextResponse.redirect(new URL('/dashboard?error=easypaisa_cancelled', appUrl), 303)
   }
 
-  try {
-    const verifyParams = new URLSearchParams({ orderRef, userId, itemId, itemType, amount }).toString()
-    const verifyUrl = `${appUrl}/api/easypaisa/verify?${verifyParams}`
+  const verifyUrl = `${appUrl}/api/easypaisa/verify?orderRef=${orderRef}`
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><title>Redirecting to Easypaisa...</title></head>
-      <body onload="document.forms[0].submit()">
-        <form action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
-          <input type="hidden" name="auth_token" value="${authToken}" />
-          <input type="hidden" name="postBackURL" value="${verifyUrl}" />
-        </form>
-        <p>Redirecting to secure checkout...</p>
-      </body>
-      </html>
-    `
+  const html = `<!DOCTYPE html>
+<html>
+<head><title>Completing Payment...</title><meta charset="utf-8"/>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f7f7ff;}</style>
+</head>
+<body>
+  <p>Completing your Easypaisa payment, please wait...</p>
+  <form id="f" action="${EP_CONFIRM_URL}" method="POST" style="display:none;">
+    <input type="hidden" name="auth_token" value="${authToken}" />
+    <input type="hidden" name="postBackURL" value="${verifyUrl}" />
+  </form>
+  <script>document.getElementById('f').submit();</script>
+</body>
+</html>`
 
-    return new NextResponse(html, {
-      headers: { 'Content-Type': 'text/html' }
-    })
-  } catch (err: any) {
-    console.error('[Easypaisa] callback POST error:', err)
-    return NextResponse.redirect(new URL(`/buy/${itemId}?error=easypaisa_error`, appUrl), 303)
-  }
+  return new NextResponse(html, { headers: { 'Content-Type': 'text/html' } })
 }

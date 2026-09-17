@@ -2,6 +2,7 @@ import { getServerAuth } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
+import Payment from '@/models/Payment'
 import { apiError } from '@/lib/utils'
 import { z } from 'zod'
 import crypto from 'crypto'
@@ -11,7 +12,6 @@ const EP_STORE_ID  = process.env.EASYPAISA_STORE_ID  || ''
 const EP_HASH_KEY  = process.env.EASYPAISA_HASH_KEY  || ''
 const EP_SANDBOX   = process.env.EASYPAISA_SANDBOX === 'true'
 
-// Sandbox vs Production endpoints
 const EP_INDEX_URL = EP_SANDBOX
   ? 'https://easypaystg.easypaisa.com.pk/easypay/Index.jsf'
   : 'https://easypay.easypaisa.com.pk/easypay/Index.jsf'
@@ -27,41 +27,36 @@ const getAppUrl = (req: Request) => {
 }
 
 /**
- * Generates merchantHashedReq for Easypaisa.
+ * Generates merchantHashedReq per Easypaisa official docs (section 5):
  *
- * CRITICAL: Easypaisa requires parameters in this EXACT fixed order (NOT alphabetical):
- * amount, autoRedirect, emailAddr, mobileNum, orderRefNum, paymentMethod, postBackURL, storeId
+ * 1. Only hash the MANDATORY fields (not optional ones like paymentMethod)
+ * 2. Sort alphabetically by key
+ * 3. Join as key=val&key=val
+ * 4. Encrypt with AES/ECB/PKCS5Padding, base64 output
  *
- * Any deviation causes "Parameter Authentication failed".
+ * Mandatory fields: amount, autoRedirect, expiryDate, orderRefNum, postBackURL, storeId
+ * (Matches the exact Java example in the official integration guide)
  */
-function generateHashedReq(fields: {
+function generateHashedReq(mandatoryFields: {
   amount: string
   autoRedirect: string
-  emailAddr: string
-  mobileNum: string
+  expiryDate: string
   orderRefNum: string
-  paymentMethod: string
   postBackURL: string
   storeId: string
 }): string {
   if (!EP_HASH_KEY) return ''
   try {
-    // Fixed order as required by Easypaisa integration guide
-    const valueString =
-      `amount=${fields.amount}` +
-      `&autoRedirect=${fields.autoRedirect}` +
-      `&emailAddr=${fields.emailAddr}` +
-      `&mobileNum=${fields.mobileNum}` +
-      `&orderRefNum=${fields.orderRefNum}` +
-      `&paymentMethod=${fields.paymentMethod}` +
-      `&postBackURL=${fields.postBackURL}` +
-      `&storeId=${fields.storeId}`
+    // Sort alphabetically (as per official docs)
+    const sorted = Object.entries(mandatoryFields).sort(([a], [b]) => a.localeCompare(b))
+    const valueString = sorted.map(([k, v]) => `${k}=${v}`).join('&')
 
     const keyBuffer = Buffer.from(EP_HASH_KEY, 'utf8')
     const cipher = crypto.createCipheriv('aes-128-ecb', keyBuffer.slice(0, 16), null)
     cipher.setAutoPadding(true)
     const encrypted = Buffer.concat([cipher.update(valueString, 'utf8'), cipher.final()])
-    console.log('[Easypaisa] Hash input string:', valueString)
+
+    console.log('[Easypaisa] Hash input:', valueString)
     return encrypted.toString('base64')
   } catch (err) {
     console.error('[Easypaisa] Hash generation failed:', err)
@@ -108,34 +103,53 @@ export async function POST(request: Request) {
     if (price <= 0) return apiError('Invalid price', 400)
     if (!EP_STORE_ID) return apiError('Easypaisa is not configured on this server', 500)
 
-    // Use a 12-digit numeric order reference (Easypaisa fails if it's too long or has letters)
-    const orderRefNum = Math.floor(100000 + Math.random() * 900000).toString() + Math.floor(100000 + Math.random() * 900000).toString()
-    const appUrl      = getAppUrl(request)
+    // Clean up old pending Easypaisa payments for this user+item to avoid junk
+    const oldQuery: any = { userId, method: 'easypaisa', status: 'pending' }
+    if (itemType === 'course') oldQuery.courseId = itemId
+    else oldQuery.chapterId = itemId
+    await Payment.deleteMany(oldQuery)
 
-    // ── We do NOT create DB records here ──────────────────────────────────────
-    // DB records are only created in /api/easypaisa/verify AFTER Easypaisa
-    // confirms a successful payment. This prevents junk pending records when
-    // Easypaisa rejects or user cancels.
-    //
-    // We carry session data (userId, itemId, itemType) through the URL chain:
-    // postBackURL (callback) → verifyURL (verify)
-    // ─────────────────────────────────────────────────────────────────────────
+    // 12-digit numeric order reference
+    const orderRefNum = Math.floor(100000 + Math.random() * 900000).toString()
+                      + Math.floor(100000 + Math.random() * 900000).toString()
 
-    const callbackParams = new URLSearchParams({
-      orderRef: orderRefNum,
+    const appUrl    = getAppUrl(request)
+    const amountStr = formatAmount(price)
+    const expiryDate = getExpiryDate()
+
+    // ── Store session data in Payment (pending) so we can look it up in /verify ──
+    // We use orderRefNum as the easypaisaRef key.
+    // The verify route will update this to 'approved' on success.
+    const paymentData: any = {
       userId,
-      itemId,
-      itemType,
-      amount: price.toString(),
-    }).toString()
+      method:        'easypaisa',
+      amount:        price,
+      transactionId: orderRefNum,
+      screenshotUrl: 'easypaisa_pending',
+      status:        'pending',
+      easypaisaRef:  orderRefNum,
+    }
+    if (itemType === 'course') paymentData.courseId = itemId
+    else paymentData.chapterId = itemId
+    await Payment.create(paymentData)
 
-    const postBackURL1 = `${appUrl}/api/easypaisa/callback?${callbackParams}`
+    // ── Callback URL: keep it clean (just orderRef) ─────────────────────────────
+    // We look up session data from the Payment record in /verify.
+    // Complex query params in postBackURL can cause Confirm.jsf to reject.
+    // ─────────────────────────────────────────────────────────────────────────────
+    const postBackURL1 = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
 
-    const amountStr      = formatAmount(price)
-    const expiryDate     = getExpiryDate()
-    const paymentMethod  = 'MA_PAYMENT_METHOD'
+    // ── Build mandatory hash fields (6 fields, as per official docs section 5) ──
+    const hashFields = {
+      amount:       amountStr,
+      autoRedirect: '1',
+      expiryDate:   expiryDate,
+      orderRefNum:  orderRefNum,
+      postBackURL:  postBackURL1,
+      storeId:      EP_STORE_ID,
+    }
 
-    // All 8 fields sent to Easypaisa AND used for the hash
+    // ── All form params sent to Easypaisa ─────────────────────────────────────
     const formParams: Record<string, string> = {
       storeId:       EP_STORE_ID,
       amount:        amountStr,
@@ -143,26 +157,14 @@ export async function POST(request: Request) {
       orderRefNum:   orderRefNum,
       expiryDate:    expiryDate,
       autoRedirect:  '1',
-      paymentMethod: paymentMethod,
-      // emailAddr and mobileNum are optional (empty) — still included in hash
-      emailAddr:     '',
-      mobileNum:     '',
+      paymentMethod: 'MA_PAYMENT_METHOD',  // optional — NOT included in hash
     }
 
     if (EP_HASH_KEY) {
-      formParams.merchantHashedReq = generateHashedReq({
-        amount:        amountStr,
-        autoRedirect:  '1',
-        emailAddr:     '',
-        mobileNum:     '',
-        orderRefNum:   orderRefNum,
-        paymentMethod: paymentMethod,
-        postBackURL:   postBackURL1,
-        storeId:       EP_STORE_ID,
-      })
+      formParams.merchantHashedReq = generateHashedReq(hashFields)
     }
 
-    console.log('[Easypaisa] create-session. sandbox:', EP_SANDBOX, 'storeId:', EP_STORE_ID, 'orderRef:', orderRefNum)
+    console.log('[Easypaisa] create-session. sandbox:', EP_SANDBOX, 'storeId:', EP_STORE_ID, 'orderRef:', orderRefNum, 'amount:', amountStr)
 
     return Response.json({
       endpoint: EP_INDEX_URL,
