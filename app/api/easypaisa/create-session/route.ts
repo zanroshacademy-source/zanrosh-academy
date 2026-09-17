@@ -27,18 +27,41 @@ const getAppUrl = (req: Request) => {
 }
 
 /**
- * AES/ECB/PKCS5Padding as required by Easypaisa.
- * Hash key must be exactly 16 characters for AES-128.
+ * Generates merchantHashedReq for Easypaisa.
+ *
+ * CRITICAL: Easypaisa requires parameters in this EXACT fixed order (NOT alphabetical):
+ * amount, autoRedirect, emailAddr, mobileNum, orderRefNum, paymentMethod, postBackURL, storeId
+ *
+ * Any deviation causes "Parameter Authentication failed".
  */
-function generateHashedReq(params: Record<string, string>): string {
+function generateHashedReq(fields: {
+  amount: string
+  autoRedirect: string
+  emailAddr: string
+  mobileNum: string
+  orderRefNum: string
+  paymentMethod: string
+  postBackURL: string
+  storeId: string
+}): string {
   if (!EP_HASH_KEY) return ''
   try {
-    const sorted = Object.entries(params).sort(([a], [b]) => a.localeCompare(b))
-    const valueString = sorted.map(([k, v]) => `${k}=${v}`).join('&')
+    // Fixed order as required by Easypaisa integration guide
+    const valueString =
+      `amount=${fields.amount}` +
+      `&autoRedirect=${fields.autoRedirect}` +
+      `&emailAddr=${fields.emailAddr}` +
+      `&mobileNum=${fields.mobileNum}` +
+      `&orderRefNum=${fields.orderRefNum}` +
+      `&paymentMethod=${fields.paymentMethod}` +
+      `&postBackURL=${fields.postBackURL}` +
+      `&storeId=${fields.storeId}`
+
     const keyBuffer = Buffer.from(EP_HASH_KEY, 'utf8')
     const cipher = crypto.createCipheriv('aes-128-ecb', keyBuffer.slice(0, 16), null)
     cipher.setAutoPadding(true)
     const encrypted = Buffer.concat([cipher.update(valueString, 'utf8'), cipher.final()])
+    console.log('[Easypaisa] Hash input string:', valueString)
     return encrypted.toString('base64')
   } catch (err) {
     console.error('[Easypaisa] Hash generation failed:', err)
@@ -108,28 +131,35 @@ export async function POST(request: Request) {
 
     const postBackURL1 = `${appUrl}/api/easypaisa/callback?${callbackParams}`
 
-    // ── Only these 6 fields go into the merchantHashedReq ─────────────────────
-    // Easypaisa verifies ONLY the mandatory fields. Adding extras (like paymentMethod)
-    // into the hash causes "request could not be processed" on their side.
-    // ─────────────────────────────────────────────────────────────────────────
-    const hashableParams: Record<string, string> = {
-      storeId:      EP_STORE_ID,
-      amount:       formatAmount(price),
-      postBackURL:  postBackURL1,
-      orderRefNum:  orderRefNum,
-      expiryDate:   getExpiryDate(),
-      autoRedirect: '1',
-    }
+    const amountStr      = formatAmount(price)
+    const expiryDate     = getExpiryDate()
+    const paymentMethod  = 'MA_PAYMENT_METHOD'
 
-    // All params sent to Easypaisa (hash params + optional extras)
+    // All 8 fields sent to Easypaisa AND used for the hash
     const formParams: Record<string, string> = {
-      ...hashableParams,
-      paymentMethod: 'MA_PAYMENT_METHOD',
+      storeId:       EP_STORE_ID,
+      amount:        amountStr,
+      postBackURL:   postBackURL1,
+      orderRefNum:   orderRefNum,
+      expiryDate:    expiryDate,
+      autoRedirect:  '1',
+      paymentMethod: paymentMethod,
+      // emailAddr and mobileNum are optional (empty) — still included in hash
+      emailAddr:     '',
+      mobileNum:     '',
     }
 
     if (EP_HASH_KEY) {
-      // Hash is calculated ONLY from hashableParams
-      formParams.merchantHashedReq = generateHashedReq(hashableParams)
+      formParams.merchantHashedReq = generateHashedReq({
+        amount:        amountStr,
+        autoRedirect:  '1',
+        emailAddr:     '',
+        mobileNum:     '',
+        orderRefNum:   orderRefNum,
+        paymentMethod: paymentMethod,
+        postBackURL:   postBackURL1,
+        storeId:       EP_STORE_ID,
+      })
     }
 
     console.log('[Easypaisa] create-session. sandbox:', EP_SANDBOX, 'storeId:', EP_STORE_ID, 'orderRef:', orderRefNum)
