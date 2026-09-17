@@ -7,7 +7,7 @@ import { formatPKR } from '@/lib/utils'
 import EasypaisaCheckoutButton from '@/components/EasypaisaCheckoutButton'
 import Purchase from '@/models/Purchase'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, Clock, Lock, BookOpen, Video } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Clock, Lock, BookOpen, ShoppingBag } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 
 export default async function BuyPage({
@@ -149,7 +149,7 @@ export default async function BuyPage({
                   <ul className="flex flex-col gap-2">
                     {topics.map((t: any) => (
                       <li key={t._id.toString()} className="flex items-center gap-3 bg-white border border-gray-100 p-3 rounded-xl shadow-sm">
-                        <span className="w-6 h-6 rounded-md bg-[#3a86ff]/10 text-[#3a86ff] flex items-center justify-center text-xs font-black shrink-0"><Video size={12} /></span>
+                        <span className="w-6 h-6 rounded-md bg-[#3a86ff]/10 text-[#3a86ff] flex items-center justify-center text-xs font-black shrink-0"><ShoppingBag size={12} /></span>
                         <span className="font-bold text-[#4A5043] text-sm truncate">{t.title}</span>
                       </li>
                     ))}

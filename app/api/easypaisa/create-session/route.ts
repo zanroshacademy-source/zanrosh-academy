@@ -108,18 +108,28 @@ export async function POST(request: Request) {
 
     const postBackURL1 = `${appUrl}/api/easypaisa/callback?${callbackParams}`
 
-    const formParams: Record<string, string> = {
+    // ── Only these 6 fields go into the merchantHashedReq ─────────────────────
+    // Easypaisa verifies ONLY the mandatory fields. Adding extras (like paymentMethod)
+    // into the hash causes "request could not be processed" on their side.
+    // ─────────────────────────────────────────────────────────────────────────
+    const hashableParams: Record<string, string> = {
       storeId:      EP_STORE_ID,
       amount:       formatAmount(price),
       postBackURL:  postBackURL1,
       orderRefNum:  orderRefNum,
       expiryDate:   getExpiryDate(),
       autoRedirect: '1',
+    }
+
+    // All params sent to Easypaisa (hash params + optional extras)
+    const formParams: Record<string, string> = {
+      ...hashableParams,
       paymentMethod: 'MA_PAYMENT_METHOD',
     }
 
     if (EP_HASH_KEY) {
-      formParams.merchantHashedReq = generateHashedReq(formParams)
+      // Hash is calculated ONLY from hashableParams
+      formParams.merchantHashedReq = generateHashedReq(hashableParams)
     }
 
     console.log('[Easypaisa] create-session. sandbox:', EP_SANDBOX, 'storeId:', EP_STORE_ID, 'orderRef:', orderRefNum)
