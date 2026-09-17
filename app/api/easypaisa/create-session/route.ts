@@ -29,26 +29,16 @@ const getAppUrl = (req: Request) => {
 /**
  * Generates merchantHashedReq per Easypaisa official docs (section 5):
  *
- * 1. Only hash the MANDATORY fields (not optional ones like paymentMethod)
+ * 1. Create map of ALL the fields that are part of the request
  * 2. Sort alphabetically by key
  * 3. Join as key=val&key=val
  * 4. Encrypt with AES/ECB/PKCS5Padding, base64 output
- *
- * Mandatory fields: amount, autoRedirect, expiryDate, orderRefNum, postBackURL, storeId
- * (Matches the exact Java example in the official integration guide)
  */
-function generateHashedReq(mandatoryFields: {
-  amount: string
-  autoRedirect: string
-  expiryDate: string
-  orderRefNum: string
-  postBackURL: string
-  storeId: string
-}): string {
+function generateHashedReq(params: Record<string, string>): string {
   if (!EP_HASH_KEY) return ''
   try {
     // Sort alphabetically (as per official docs)
-    const sorted = Object.entries(mandatoryFields).sort(([a], [b]) => a.localeCompare(b))
+    const sorted = Object.entries(params).sort(([a], [b]) => a.localeCompare(b))
     const valueString = sorted.map(([k, v]) => `${k}=${v}`).join('&')
 
     const keyBuffer = Buffer.from(EP_HASH_KEY, 'utf8')
@@ -139,16 +129,6 @@ export async function POST(request: Request) {
     // ─────────────────────────────────────────────────────────────────────────────
     const postBackURL1 = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
 
-    // ── Build mandatory hash fields (6 fields, as per official docs section 5) ──
-    const hashFields = {
-      amount:       amountStr,
-      autoRedirect: '1',
-      expiryDate:   expiryDate,
-      orderRefNum:  orderRefNum,
-      postBackURL:  postBackURL1,
-      storeId:      EP_STORE_ID,
-    }
-
     // ── All form params sent to Easypaisa ─────────────────────────────────────
     const formParams: Record<string, string> = {
       storeId:       EP_STORE_ID,
@@ -157,11 +137,12 @@ export async function POST(request: Request) {
       orderRefNum:   orderRefNum,
       expiryDate:    expiryDate,
       autoRedirect:  '1',
-      paymentMethod: 'MA_PAYMENT_METHOD',  // optional — NOT included in hash
+      paymentMethod: 'MA_PAYMENT_METHOD',
     }
 
     if (EP_HASH_KEY) {
-      formParams.merchantHashedReq = generateHashedReq(hashFields)
+      // Hash is calculated from ALL params sent in the request, sorted alphabetically
+      formParams.merchantHashedReq = generateHashedReq(formParams)
     }
 
     console.log('[Easypaisa] create-session. sandbox:', EP_SANDBOX, 'storeId:', EP_STORE_ID, 'orderRef:', orderRefNum, 'amount:', amountStr)
