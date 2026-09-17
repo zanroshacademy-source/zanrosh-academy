@@ -24,7 +24,12 @@ export async function GET(request: Request) {
   const appUrl    = getAppUrl(request)
   const { searchParams } = new URL(request.url)
 
-  const authToken = searchParams.get('auth_token') || ''
+  let authToken = searchParams.get('auth_token') || ''
+  // Fix potential corruption where '+' in base64 tokens is decoded as a space
+  if (authToken.includes(' ')) {
+    authToken = authToken.replace(/ /g, '+')
+  }
+
   const orderRef  = searchParams.get('orderRef')   || ''
 
   console.log('[Easypaisa] callback GET. auth_token:', authToken ? 'YES' : 'NO', 'orderRef:', orderRef)
@@ -84,6 +89,10 @@ export async function POST(request: Request) {
     authToken = formData.get('auth_token')?.toString() || authToken
   } catch {
     // ignore
+  }
+
+  if (authToken.includes(' ')) {
+    authToken = authToken.replace(/ /g, '+')
   }
 
   console.log('[Easypaisa] callback POST. auth_token:', authToken ? 'YES' : 'NO', 'orderRef:', orderRef)
