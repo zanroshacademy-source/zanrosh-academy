@@ -130,14 +130,14 @@ export async function POST(request: Request) {
     const postBackURL1 = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
 
     // ── All form params sent to Easypaisa ─────────────────────────────────────
+    // Removed optional fields (expiryDate, paymentMethod) to keep it as simple
+    // as possible to prevent "request could not be processed" on their backend.
     const formParams: Record<string, string> = {
       storeId:       EP_STORE_ID,
       amount:        amountStr,
       postBackURL:   postBackURL1,
       orderRefNum:   orderRefNum,
-      expiryDate:    expiryDate,
-      autoRedirect:  '1',
-      paymentMethod: 'MA_PAYMENT_METHOD',
+      autoRedirect:  '0', // Changed to 0 just in case 1 causes issues
     }
 
     if (EP_HASH_KEY) {
