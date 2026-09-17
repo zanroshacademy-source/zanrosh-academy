@@ -40,8 +40,10 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/dashboard?error=easypaisa_missing_ref', appUrl), 303)
   }
 
-  // Clean verify URL — just the orderRef. Session data is in the DB.
-  const verifyUrl = `${appUrl}/api/easypaisa/verify?orderRef=${orderRef}`
+  // Clean verify URL — absolutely no query parameters.
+  // Easypaisa Confirm.jsf might fail ("request could not be processed") if this has a query string.
+  // It will automatically append ?status=...&desc=...&orderRefNumber=... when it redirects!
+  const verifyUrl = `${appUrl}/api/easypaisa/verify`
 
   console.log('[Easypaisa] Auto-submitting to Confirm.jsf. verifyUrl:', verifyUrl)
 
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL('/dashboard?error=easypaisa_cancelled', appUrl), 303)
   }
 
-  const verifyUrl = `${appUrl}/api/easypaisa/verify?orderRef=${orderRef}`
+  const verifyUrl = `${appUrl}/api/easypaisa/verify`
 
   const html = `<!DOCTYPE html>
 <html>
