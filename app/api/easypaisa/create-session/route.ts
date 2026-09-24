@@ -10,7 +10,7 @@ import crypto from 'crypto'
 // ─── Easypaisa Merchant Config ──────────────────────────────────────────────
 const EP_STORE_ID = process.env.EASYPAISA_STORE_ID || ''
 const EP_HASH_KEY = process.env.EASYPAISA_HASH_KEY || ''
-const EP_SANDBOX  = process.env.EASYPAISA_SANDBOX !== 'false' // default to sandbox for safety
+const EP_SANDBOX  = process.env.EASYPAISA_SANDBOX === 'true'
 
 // Sandbox URLs (from official integration guide Section 7)
 const EP_INDEX_URL = EP_SANDBOX
