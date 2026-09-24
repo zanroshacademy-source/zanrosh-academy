@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const EP_SANDBOX = process.env.EASYPAISA_SANDBOX === 'true'
+const EP_SANDBOX = process.env.EASYPAISA_SANDBOX !== 'false' // default sandbox
 
 const EP_CONFIRM_URL = EP_SANDBOX
   ? 'https://easypaystg.easypaisa.com.pk/easypay/Confirm.jsf'

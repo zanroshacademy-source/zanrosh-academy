@@ -4,6 +4,7 @@ import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
 import { isAdmin, isCourseOwner } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
+import { revalidatePath } from 'next/cache'
 
 export async function PATCH(
   request: Request,
@@ -31,6 +32,11 @@ export async function PATCH(
     if (body.isPublished === true) {
       await Course.findByIdAndUpdate(chapter.courseId, { isPublished: true })
     }
+
+    // Revalidate public-facing pages immediately so published content shows up
+    revalidatePath('/courses')
+    revalidatePath(`/courses/${chapter.courseId}`)
+    revalidatePath('/')
 
     return apiSuccess(chapter)
   } catch (err) {
