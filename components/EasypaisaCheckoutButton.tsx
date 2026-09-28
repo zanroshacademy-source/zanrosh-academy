@@ -214,10 +214,20 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
         <div className="flex flex-col gap-3">
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
             <p className="text-sm font-bold text-green-800 mb-3">Scan this QR code with your Easypaisa App</p>
-            {/* Static merchant QR — scan with Easypaisa app to send money */}
+            {/* Legit merchant QR image */}
             <div className="bg-white p-4 rounded-xl inline-block shadow-sm">
-              <div className="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded-lg text-gray-400 text-xs text-center">
-                <div>
+              <div className="relative w-48 h-48 mx-auto flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 text-xs text-center overflow-hidden">
+                <img 
+                  src="/easypaisa-qr.png" 
+                  alt="Easypaisa QR Code" 
+                  className="object-contain w-full h-full absolute inset-0 z-10"
+                  onError={(e) => {
+                    // Fallback if the image doesn't exist yet
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {/* Fallback UI if image is missing */}
+                <div className="z-0">
                   <QrCode size={64} className="mx-auto mb-2 text-green-600" />
                   <p className="font-bold text-green-700">Easypaisa</p>
                   <p className="text-green-600 font-semibold">{easypaisaNumber}</p>
