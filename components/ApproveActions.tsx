@@ -31,8 +31,8 @@ export default function ApproveActions({ paymentId }: ApproveActionsProps) {
         return
       }
 
-      router.refresh()
-      router.push('/admin/payments')
+      // Use replace to avoid skeleton — goes straight to payments list
+      router.replace('/admin/payments')
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -54,8 +54,7 @@ export default function ApproveActions({ paymentId }: ApproveActionsProps) {
         return
       }
 
-      router.refresh()
-      router.push('/admin/payments')
+      router.replace('/admin/payments')
     } catch {
       setError('Network error. Please try again.')
     } finally {

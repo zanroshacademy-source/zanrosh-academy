@@ -112,6 +112,8 @@ export default async function BuyPage({
                     <EasypaisaCheckoutButton
                       itemId={id}
                       itemType="chapter"
+                      price={item.price}
+                      easypaisaNumber={process.env.NEXT_PUBLIC_EASYPAISA_NUMBER || '03332121979'}
                     />
                   </>
                 )}

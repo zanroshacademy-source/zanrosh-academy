@@ -12,9 +12,10 @@ const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
 const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || ''
 const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || ''
 const EP_ACCOUNT_NUM = process.env.EASYPAISA_ACCOUNT_NUM  || '173397419' // EWP Account #
-const EP_SANDBOX     = process.env.EASYPAISA_SANDBOX === 'true'
+// Easypaisa sent staging credentials — use staging URL unless explicitly set to production
+const EP_SANDBOX     = process.env.EASYPAISA_SANDBOX !== 'false'
 
-// Easypaisa REST API URLs (no RSA required)
+// Easypaisa REST API URLs
 const EP_MA_URL = EP_SANDBOX
   ? 'https://easypaystg.easypaisa.com.pk/easypay-service/rest/v4/initiate-ma-transaction'
   : 'https://easypay.easypaisa.com.pk/easypay-service/rest/v4/initiate-ma-transaction'
