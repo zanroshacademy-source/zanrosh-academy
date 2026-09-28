@@ -87,12 +87,6 @@ function formatAmount(price: number): string {
   return price.toFixed(1)
 }
 
-function getExpiryDate(): string {
-  const d = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())} ${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
-}
-
 export async function POST(request: Request) {
   try {
     const { userId } = await getServerAuth()
@@ -153,17 +147,13 @@ export async function POST(request: Request) {
     // Clean callback URL — Easypaisa will redirect here with auth_token
     const postBackURL = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
 
-    const expiryDateStr = getExpiryDate()
-
-    // Build the request body
+    // Build the request body EXACTLY matching the Easypaisa demo HTML
     const requestBody: Record<string, string> = {
       storeId:       EP_STORE_ID,
       amount:        amountStr,
       postBackURL:   postBackURL,
       orderRefNum:   orderRefNum,
-      expiryDate:    expiryDateStr,
       autoRedirect:  '0',
-      paymentMethod: 'MA_PAYMENT_METHOD',
     }
 
     // Compute hash over ALL fields in requestBody, then append it
