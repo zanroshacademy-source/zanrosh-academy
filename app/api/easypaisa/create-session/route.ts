@@ -122,10 +122,10 @@ export async function POST(request: Request) {
     else oldQuery.chapterId = itemId
     await Payment.deleteMany(oldQuery)
 
-    // 12-digit numeric order reference
-    const orderRefNum =
-      Math.floor(100000 + Math.random() * 900000).toString() +
-      Math.floor(100000 + Math.random() * 900000).toString()
+    // Shorter 8-character alphanumeric order reference (e.g., ZAN-A1B2C3D4)
+    // to prevent any potential backend length/type limits on Easypaisa's side
+    const randomStr = crypto.randomBytes(4).toString('hex').toUpperCase()
+    const orderRefNum = `ZAN-${randomStr}`
 
     const appUrl    = getAppUrl(request)
     const amountStr = formatAmount(price)
