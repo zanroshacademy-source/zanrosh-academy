@@ -147,13 +147,14 @@ export async function POST(request: Request) {
     // Clean callback URL — Easypaisa will redirect here with auth_token
     const postBackURL = `${appUrl}/api/easypaisa/callback?orderRef=${orderRefNum}`
 
-    // Build the request body (without merchantHashedReq) — matches RN example's requestBody
+    // Build the request body
     const requestBody: Record<string, string> = {
-      storeId:      EP_STORE_ID,
-      amount:       amountStr,
-      postBackURL:  postBackURL,
-      orderRefNum:  orderRefNum,
-      autoRedirect: '0',
+      storeId:       EP_STORE_ID,
+      amount:        amountStr,
+      postBackURL:   postBackURL,
+      orderRefNum:   orderRefNum,
+      autoRedirect:  '0',
+      paymentMethod: 'MA_PAYMENT_METHOD',
     }
 
     // Compute hash over ALL fields in requestBody, then append it
