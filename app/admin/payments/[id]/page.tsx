@@ -18,6 +18,8 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
     payment = { ...payment, _id: payment._id }
   } else {
     await connectDB()
+    // Validate ObjectId format before querying to avoid CastError crash
+    if (!/^[a-f\d]{24}$/i.test(id)) notFound()
     payment = await Payment.findById(id).populate('chapterId', 'title price courseId').lean()
     if (!payment) notFound()
   }
