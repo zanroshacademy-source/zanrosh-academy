@@ -67,9 +67,9 @@ export async function GET(request: Request) {
     const epData = await epRes.json()
     console.log('[Easypaisa] Inquire response:', epData)
 
-    const txStatus = epData.transactionStatus || 'PENDING'
+    const txStatus = (epData.transactionStatus || 'PENDING').toUpperCase()
 
-    if (txStatus === 'PAID') {
+    if (txStatus === 'PAID' || txStatus === 'SUCCESS') {
       // ── Payment confirmed — create Purchase ───────────────────────────────────
       payment.status = 'approved'
       payment.transactionId = epData.transactionId || orderId
