@@ -12,8 +12,8 @@ const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
 const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || ''
 const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || ''
 const EP_ACCOUNT_NUM = process.env.EASYPAISA_ACCOUNT_NUM  || '173397419' // EWP Account #
-// Easypaisa sent staging credentials — use staging URL unless explicitly set to production
-const EP_SANDBOX     = process.env.EASYPAISA_SANDBOX !== 'false'
+// Force Sandbox mode for now as requested by user
+const EP_SANDBOX     = true
 
 // Easypaisa REST API URLs
 const EP_MA_URL = EP_SANDBOX
