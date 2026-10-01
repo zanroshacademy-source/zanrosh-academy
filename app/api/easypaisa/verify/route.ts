@@ -64,8 +64,15 @@ export async function GET(request: Request) {
       body: JSON.stringify(inquireBody),
     })
 
-    const epData = await epRes.json()
-    console.log('[Easypaisa] Inquire response:', epData)
+    let epData;
+    const rawText = await epRes.text();
+    try {
+      epData = JSON.parse(rawText);
+      console.log('[Easypaisa] Inquire response:', epData);
+    } catch (e) {
+      console.error('[Easypaisa] Invalid JSON response:', rawText.substring(0, 500));
+      return apiError('Easypaisa service is currently unavailable.', 502);
+    }
 
     const txStatus = (epData.transactionStatus || 'PENDING').toUpperCase()
 

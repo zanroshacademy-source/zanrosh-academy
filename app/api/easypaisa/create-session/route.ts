@@ -108,8 +108,15 @@ export async function POST(request: Request) {
       body: JSON.stringify(requestBody),
     })
 
-    const epData = await epRes.json()
-    console.log('[Easypaisa MA] Response:', epData)
+    let epData;
+    const rawText = await epRes.text();
+    try {
+      epData = JSON.parse(rawText);
+      console.log('[Easypaisa MA] Response:', epData);
+    } catch (e) {
+      console.error('[Easypaisa MA] Invalid JSON response:', rawText.substring(0, 500));
+      return apiError('Easypaisa service is currently unavailable or returned an invalid response. Please try again later.', 502);
+    }
 
     if (epData.responseCode !== '0000') {
       // Clean up the pending payment on failure

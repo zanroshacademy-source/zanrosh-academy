@@ -99,10 +99,14 @@ export default async function AdminPaymentsPage() {
                     <td style={{ fontWeight: 600 }}>{formatPKR(pay.amount)}</td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{pay.transactionId}</td>
                     <td>
-                      <a href={pay.screenshotUrl} target="_blank" rel="noreferrer"
-                        style={{ color: 'var(--accent-light)', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Eye size={13} /> View
-                      </a>
+                      {pay.screenshotUrl === 'easypaisa_pending' ? (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>MA Push</span>
+                      ) : (
+                        <a href={pay.screenshotUrl} target="_blank" rel="noreferrer"
+                          style={{ color: 'var(--accent-light)', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <Eye size={13} /> View
+                        </a>
+                      )}
                     </td>
                     <td>
                       <span className={`badge badge-${pay.status}`}>
