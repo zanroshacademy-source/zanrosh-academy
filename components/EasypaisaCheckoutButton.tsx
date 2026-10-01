@@ -218,19 +218,17 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
             <div className="bg-white p-4 rounded-xl inline-block shadow-sm">
               <div className="relative w-48 h-48 mx-auto flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 text-xs text-center overflow-hidden">
                 <img 
-                  src="/easypaisa-qr.png" 
+                  src="/qr.jpeg" 
                   alt="Easypaisa QR Code" 
                   className="object-contain w-full h-full absolute inset-0 z-10"
                   onError={(e) => {
-                    // Fallback if the image doesn't exist yet
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                {/* Fallback UI if image is missing */}
                 <div className="z-0">
                   <QrCode size={64} className="mx-auto mb-2 text-green-600" />
                   <p className="font-bold text-green-700">Easypaisa</p>
-                  <p className="text-green-600 font-semibold">{easypaisaNumber}</p>
+                  <p className="text-green-600 font-semibold">03332121979</p>
                 </div>
               </div>
             </div>
@@ -254,7 +252,7 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
       {method === 'screenshot' && (
         <div className="flex flex-col gap-3">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
-            📲 Send <strong>PKR {price}</strong> to Easypaisa number <strong>{easypaisaNumber}</strong>, then upload your screenshot below.
+            📲 Send <strong>PKR {price}</strong> to Easypaisa number <strong>03332121979</strong>, then upload your screenshot below.
           </div>
           <ScreenshotSection
             txId={txId} setTxId={setTxId}

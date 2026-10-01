@@ -59,34 +59,34 @@ export default async function HomePage() {
           <HomeNavbar />
         </header>
 
-        <main className="relative z-10 px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-center items-center pb-24">
-          <div className="w-full max-w-4xl mx-auto flex flex-col items-center text-center mt-12">
+        <main className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-center items-center pb-24">
+          <div className="w-full max-w-4xl mx-auto flex flex-col items-center text-center mt-4 sm:mt-12">
             
             <FadeIn delay={100} duration={800}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium text-sm mb-6 shadow-lg">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Enrollments open for 2026-2027 Session
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium text-xs sm:text-sm mb-6 shadow-lg text-center leading-snug">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span>Enrollments open for 2026-2027 Session</span>
               </div>
             </FadeIn>
 
             <AnimatedHeading
               text="Master Physics. Visualize Every Concept. Ace Your Exams."
-              className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-white drop-shadow-2xl leading-[1.1] tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 text-white drop-shadow-2xl leading-[1.1] tracking-tight px-2"
               initialDelay={200}
               charDelay={30}
             />
             
-            <FadeIn delay={800} duration={1000}>
-              <p className="text-lg md:text-xl text-white/95 font-medium mb-10 max-w-2xl bg-black/20 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-2xl leading-relaxed mx-auto">
+            <FadeIn delay={800} duration={1000} className="px-2">
+              <p className="text-base sm:text-lg md:text-xl text-white/95 font-medium mb-8 sm:mb-10 max-w-2xl bg-black/20 backdrop-blur-md p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl leading-relaxed mx-auto">
                Balochistan’s First Fully Animated Physics Academy aligned with the National Curriculum.<br/>
                <span className="text-amber-300 font-bold mt-2 inline-block">Founded by Maqbool Ahmed Pirkani</span> (Govt. Postgraduate College)
               </p>
             </FadeIn>
             
-            <FadeIn delay={1200} duration={1000} className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+            <FadeIn delay={1200} duration={1000} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-4 sm:px-0">
               <Link
                 href="/sign-up"
-                className="group relative bg-[#3a86ff] text-white px-8 py-4 rounded-full font-bold text-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_30px_rgba(58,134,255,0.5)] active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="group relative bg-[#3a86ff] text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_30px_rgba(58,134,255,0.5)] active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <span className="relative z-10">Start Learning Free</span>
                 <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
@@ -94,7 +94,7 @@ export default async function HomePage() {
               </Link>
               <Link
                 href="/courses"
-                className="group border border-white/40 text-white px-8 py-4 rounded-full font-bold text-lg bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-[#27187e] hover:scale-105 active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="group border border-white/40 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-[#27187e] hover:scale-105 active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <PlayCircle size={20} /> Browse Courses
               </Link>

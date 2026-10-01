@@ -4,13 +4,9 @@ import Payment from '@/models/Payment'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
 import { apiError, apiSuccess } from '@/lib/utils'
-import { v2 as cloudinary } from 'cloudinary'
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+// ImgBB API Key provided by user
+const IMGBB_API_KEY = '475e56363b7473f610de146a4ab6ce19'
 
 export async function POST(request: Request) {
   try {
@@ -41,16 +37,26 @@ export async function POST(request: Request) {
       price = chapter.price
     }
 
-    // Upload screenshot to Cloudinary
+    // Upload screenshot to ImgBB
     const arrayBuf = await file.arrayBuffer()
     const base64   = Buffer.from(arrayBuf).toString('base64')
-    const mime     = file.type || 'image/jpeg'
-    const dataUri  = `data:${mime};base64,${base64}`
+    
+    const imgbbFormData = new URLSearchParams()
+    imgbbFormData.append('key', IMGBB_API_KEY)
+    imgbbFormData.append('image', base64)
 
-    const uploadRes = await cloudinary.uploader.upload(dataUri, {
-      folder: 'easypaisa-screenshots',
-      resource_type: 'image',
+    const uploadRes = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: imgbbFormData,
     })
+    
+    const uploadData = await uploadRes.json()
+    if (!uploadRes.ok || !uploadData.success) {
+      console.error('[ImgBB Error]', uploadData)
+      return apiError('Failed to upload screenshot to image server', 500)
+    }
+
+    const imageUrl = uploadData.data.url
 
     // Clean up old pending screenshot payments for this user+item
     const oldQ: any = { userId, method: methodName, status: 'pending' }
@@ -64,7 +70,7 @@ export async function POST(request: Request) {
       method:        methodName,
       amount:        price,
       transactionId: txId || `SCREENSHOT-${Date.now()}`,
-      screenshotUrl: uploadRes.secure_url,
+      screenshotUrl: imageUrl,
       status:        'pending',
     }
     if (itemType === 'course') payData.courseId = itemId
