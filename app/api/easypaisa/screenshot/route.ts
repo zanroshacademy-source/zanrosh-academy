@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const itemId     = formData.get('itemId') as string
     const itemType   = formData.get('itemType') as 'course' | 'chapter'
     const txId       = (formData.get('transactionId') as string) || ''
-    const methodName = (formData.get('method') as string) || 'easypaisa_screenshot'
+    const methodName = 'easypaisa'
 
     if (!file || !itemId || !itemType) return apiError('Missing required fields', 422)
     if (!['course', 'chapter'].includes(itemType)) return apiError('Invalid itemType', 422)
