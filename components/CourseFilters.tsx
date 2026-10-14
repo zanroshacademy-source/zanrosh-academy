@@ -6,13 +6,13 @@ import { BookOpen, Video, Layers, ArrowRight, Clock } from 'lucide-react'
 import { formatPKR } from '@/lib/utils'
 
 // Always show these class filter buttons regardless of what's in the DB
-const CLASS_FILTERS = ['All', '9th Class', '10th Class', '11th Class', '12th Class']
+const CLASS_FILTERS = ['9th Class', '10th Class', '11th Class', '12th Class']
 
 export default function CourseFilters({ courses }: { courses: any[] }) {
-  const [activeClass, setActiveClass] = useState<string>('All')
+  const [activeClass, setActiveClass] = useState<string>('')
 
   const filteredCourses =
-    activeClass === 'All' ? courses : courses.filter(c => c.classLevel === activeClass)
+    activeClass === '' ? courses : courses.filter(c => c.classLevel === activeClass)
 
   return (
     <div>
@@ -21,7 +21,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
         {CLASS_FILTERS.map(cls => (
           <button
             key={cls}
-            onClick={() => setActiveClass(cls)}
+            onClick={() => setActiveClass(activeClass === cls ? '' : cls)}
             className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 ${
               activeClass === cls
                 ? 'bg-[#27187e] text-white shadow-md scale-105'
@@ -40,7 +40,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
           </div>
           <h3 className="text-xl font-black text-[#27187e] mb-2">Coming Soon!</h3>
           <p className="text-[#4A5043]/60 font-medium">
-            {activeClass === 'All'
+            {activeClass === ''
               ? 'Courses are being prepared. Check back soon!'
               : `${activeClass} courses are being prepared. Check back soon!`}
           </p>

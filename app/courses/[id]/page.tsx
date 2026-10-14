@@ -6,7 +6,7 @@ import Topic from '@/models/Topic'
 import Purchase from '@/models/Purchase'
 import Link from 'next/link'
 import {
-  BookOpen, Lock, Unlock, ShoppingCart, Video,
+  BookOpen, Lock, Unlock, Video,
   PlayCircle, Clock,
   AlertCircle, CheckCircle
 } from 'lucide-react'
@@ -266,14 +266,14 @@ function UnitCard({
               href={`/buy/${unit._id}?type=chapter&expired=true`}
               className="flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-2xl font-bold text-sm hover:bg-red-100 transition-colors"
             >
-              <ShoppingCart size={16} /> Renew
+              Renew
             </Link>
           ) : userId ? (
             <Link
               href={`/buy/${unit._id}?type=chapter`}
               className="flex items-center gap-2 bg-[#27187e] text-white px-4 py-2.5 rounded-2xl font-bold text-sm hover:bg-[#1a0f5a] hover:scale-105 transition-all shadow-md"
             >
-              <ShoppingCart size={16} /> {unit.isFree ? 'Free' : formatPKR(unit.price || 400)}
+              {unit.isFree ? 'Free' : formatPKR(unit.price || 400)}
             </Link>
           ) : (
             <Link

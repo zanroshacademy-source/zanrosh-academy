@@ -3,9 +3,11 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
 import { isAdmin } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { z } from 'zod'
+import { sendCourseUnlockedEmail } from '@/lib/mailer'
 
 const ApproveSchema = z.object({
   status: z.enum(['approved', 'rejected']),
@@ -48,6 +50,40 @@ export async function PATCH(
     if (expiresAt) purchaseUpdate.expiresAt = expiresAt
 
     await Purchase.findOneAndUpdate({ paymentId: payment._id }, purchaseUpdate)
+
+    // ── Send confirmation email to buyer ──────────────────────────────────────
+    if (status === 'approved') {
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const client = await clerkClient()
+        const clerkUser = await client.users.getUser(payment.userId)
+        const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
+        const userName = clerkUser.firstName ?? undefined
+
+        let itemTitle = 'Your purchase'
+        const itemType: 'course' | 'chapter' = payment.chapterId ? 'chapter' : 'course'
+        if (payment.chapterId) {
+          const ch = await Chapter.findById(payment.chapterId).select('title').lean()
+          itemTitle = (ch as any)?.title ?? 'Unit'
+        } else if (payment.courseId) {
+          const co = await Course.findById(payment.courseId).select('title').lean()
+          itemTitle = (co as any)?.title ?? 'Course'
+        }
+
+        if (userEmail) {
+          await sendCourseUnlockedEmail({
+            to: userEmail,
+            userName,
+            itemTitle,
+            price: payment.amount,
+            itemType,
+            expiresAt: expiresAt ?? null,
+          })
+        }
+      } catch (emailErr) {
+        console.error('[Admin Approve] Email error (non-fatal):', emailErr)
+      }
+    }
 
     return apiSuccess({
       message: status === 'approved'

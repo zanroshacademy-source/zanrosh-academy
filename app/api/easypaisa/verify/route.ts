@@ -4,6 +4,7 @@ import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
 import { apiError } from '@/lib/utils'
 import { getServerAuth } from '@/lib/server-auth'
+import { sendCourseUnlockedEmail } from '@/lib/mailer'
 
 // ─── Easypaisa REST API Config ───────────────────────────────────────────────
 const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
@@ -83,8 +84,8 @@ export async function GET(request: Request) {
       await payment.save()
 
       const existingPurchase = await Purchase.findOne({ paymentId: payment._id })
+      let expiresAt: Date | null = null
       if (!existingPurchase) {
-        let expiresAt: Date | null = null
         if (payment.chapterId) {
           const chapter = await Chapter.findById(payment.chapterId).select('accessDays').lean()
           const days = (chapter as any)?.accessDays ?? 15
@@ -95,10 +96,43 @@ export async function GET(request: Request) {
         if (payment.courseId)  pd.courseId  = payment.courseId
         if (payment.chapterId) { pd.chapterId = payment.chapterId; if (expiresAt) pd.expiresAt = expiresAt }
         await Purchase.create(pd)
+      } else if (existingPurchase && payment.chapterId) {
+        // Already exists — still get expiry for email
+        expiresAt = (existingPurchase as any).expiresAt ?? null
       }
 
       const itemId   = payment.courseId?.toString() || payment.chapterId?.toString() || ''
       const itemType = payment.courseId ? 'course' : 'chapter'
+
+      // ── Send confirmation email ────────────────────────────────────────────
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const client = await clerkClient()
+        const clerkUser = await client.users.getUser(userId)
+        const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
+        const userName = clerkUser.firstName ?? undefined
+
+        // Get item title
+        let itemTitle = ''
+        if (payment.chapterId) {
+          const ch = await Chapter.findById(payment.chapterId).select('title').lean()
+          itemTitle = (ch as any)?.title ?? 'Unit'
+        }
+
+        if (userEmail) {
+          await sendCourseUnlockedEmail({
+            to: userEmail,
+            userName,
+            itemTitle,
+            price: payment.amount,
+            itemType,
+            expiresAt: expiresAt ?? null,
+          })
+        }
+      } catch (emailErr) {
+        console.error('[Easypaisa verify] Email error (non-fatal):', emailErr)
+      }
+
       return Response.json({ status: 'PAID', itemId, itemType })
     }
 

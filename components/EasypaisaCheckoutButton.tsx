@@ -10,6 +10,7 @@ interface Props {
   itemType: 'course' | 'chapter'
   price:    number
   easypaisaNumber: string
+  userEmail?: string
 }
 
 type Method = 'ma' | 'qr' | 'screenshot'
@@ -17,13 +18,13 @@ type Stage  = 'idle' | 'loading' | 'waiting' | 'success' | 'failed' | 'submitted
 
 const EP_NUMBER = process.env.NEXT_PUBLIC_EASYPAISA_NUMBER || '03332121979'
 
-export default function EasypaisaCheckoutButton({ itemId, itemType, price, easypaisaNumber }: Props) {
+export default function EasypaisaCheckoutButton({ itemId, itemType, price, easypaisaNumber, userEmail = '' }: Props) {
   const router = useRouter()
 
   const [method,   setMethod]  = useState<Method>('ma')
   const [stage,    setStage]   = useState<Stage>('idle')
   const [mobile,   setMobile]  = useState('')
-  const [email,    setEmail]   = useState('')
+  const [email,    setEmail]   = useState(userEmail)
   const [txId,     setTxId]    = useState('')
   const [error,    setError]   = useState('')
   const [orderId,  setOrderId] = useState('')

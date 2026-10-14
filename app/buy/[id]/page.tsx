@@ -18,14 +18,18 @@ export default async function BuyPage({
   const { id } = await params
 
   let userId: string | null = null
+  let userEmail: string = ''
 
   if (DEV_MODE) {
     userId = DEV_USER.userId
+    userEmail = 'dev@zanrosh.pk'
   } else {
-    const { auth } = await import('@clerk/nextjs/server')
+    const { auth, currentUser } = await import('@clerk/nextjs/server')
     const session = await auth()
     userId = session.userId
     if (!userId) redirect('/sign-in')
+    const clerkUser = await currentUser()
+    userEmail = clerkUser?.emailAddresses[0]?.emailAddress ?? ''
   }
 
   if (!userId) redirect('/sign-in')
@@ -114,6 +118,7 @@ export default async function BuyPage({
                       itemType="chapter"
                       price={item.price}
                       easypaisaNumber={process.env.NEXT_PUBLIC_EASYPAISA_NUMBER || '03332121979'}
+                      userEmail={userEmail}
                     />
                   </>
                 )}

@@ -79,7 +79,7 @@ export default async function HomePage() {
             <FadeIn delay={800} duration={1000} className="px-2">
               <p className="text-base sm:text-lg md:text-xl text-white/95 font-medium mb-8 sm:mb-10 max-w-2xl bg-black/20 backdrop-blur-md p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl leading-relaxed mx-auto">
                Balochistan’s First Fully Animated Physics Academy aligned with the National Curriculum.<br/>
-               <span className="text-amber-300 font-bold mt-2 inline-block">Founded by Maqbool Ahmed Pirkani</span> (Govt. Postgraduate College)
+               <span className="text-amber-300 font-bold mt-2 inline-block">Founded by Maqbool Ahmed Pirkani</span>
               </p>
             </FadeIn>
             
