@@ -6,6 +6,7 @@ import Payment from '@/models/Payment'
 import { apiError } from '@/lib/utils'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { sendPaymentRequestEmail } from '@/lib/mailer'
 
 // ─── Easypaisa REST API Config ───────────────────────────────────────────────
 const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
@@ -49,18 +50,21 @@ export async function POST(request: Request) {
 
     await connectDB()
 
-    // ── Get item price ─────────────────────────────────────────────────────────
+    // ── Get item price and title ───────────────────────────────────────────────
     let price = 0
+    let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
     if (itemType === 'course') {
       const course = await Course.findById(itemId)
       if (!course)           return apiError('Course not found', 404)
       if (!course.isPublished) return apiError('Course is not available', 403)
       price = course.price
+      itemTitle = course.title || 'Course'
     } else {
       const chapter = await Chapter.findById(itemId)
       if (!chapter)            return apiError('Chapter not found', 404)
       if (!chapter.isPublished) return apiError('Chapter is not available', 403)
       price = chapter.price
+      itemTitle = chapter.title || 'Unit'
     }
     if (price <= 0) return apiError('Invalid price', 400)
 
@@ -143,6 +147,20 @@ export async function POST(request: Request) {
       { easypaisaRef: orderId },
       { $set: { transactionId: epData.transactionId || orderId } }
     )
+
+    // Notify zanroshacademy@gmail.com about the payment request initiated
+    try {
+      await sendPaymentRequestEmail({
+        userEmail: emailAddress,
+        itemTitle,
+        price,
+        itemType,
+        method: `Easypaisa Mobile Account (${mobileAccountNo})`,
+        transactionId: epData.transactionId || orderId,
+      })
+    } catch (e) {
+      console.error('[Easypaisa MA] Payment request email error:', e)
+    }
 
     return Response.json({
       success:       true,

@@ -70,16 +70,14 @@ export async function PATCH(
           itemTitle = (co as any)?.title ?? 'Course'
         }
 
-        if (userEmail) {
-          await sendCourseUnlockedEmail({
-            to: userEmail,
-            userName,
-            itemTitle,
-            price: payment.amount,
-            itemType,
-            expiresAt: expiresAt ?? null,
-          })
-        }
+        await sendCourseUnlockedEmail({
+          to: userEmail,
+          userName,
+          itemTitle,
+          price: payment.amount,
+          itemType,
+          expiresAt: expiresAt ?? null,
+        })
       } catch (emailErr) {
         console.error('[Admin Approve] Email error (non-fatal):', emailErr)
       }

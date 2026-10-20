@@ -4,6 +4,7 @@ import Payment from '@/models/Payment'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
 import { apiError, apiSuccess } from '@/lib/utils'
+import { sendPaymentRequestEmail } from '@/lib/mailer'
 
 // ImgBB API Key provided by user
 const IMGBB_API_KEY = '475e56363b7473f610de146a4ab6ce19'
@@ -25,16 +26,19 @@ export async function POST(request: Request) {
 
     await connectDB()
 
-    // Get item price
+    // Get item price and title
     let price = 0
+    let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
     if (itemType === 'course') {
       const course = await Course.findById(itemId)
       if (!course || !course.isPublished) return apiError('Course not found', 404)
       price = course.price
+      itemTitle = course.title || 'Course'
     } else {
       const chapter = await Chapter.findById(itemId)
       if (!chapter || !chapter.isPublished) return apiError('Chapter not found', 404)
       price = chapter.price
+      itemTitle = chapter.title || 'Unit'
     }
 
     // Upload screenshot to ImgBB
@@ -76,6 +80,28 @@ export async function POST(request: Request) {
     if (itemType === 'course') payData.courseId = itemId
     else payData.chapterId = itemId
     await Payment.create(payData)
+
+    // Notify zanroshacademy@gmail.com and student
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server')
+      const client = await clerkClient()
+      const clerkUser = await client.users.getUser(userId)
+      const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
+      const userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined
+
+      await sendPaymentRequestEmail({
+        userName,
+        userEmail,
+        itemTitle,
+        price,
+        itemType,
+        method: 'Easypaisa (Screenshot / Transfer)',
+        transactionId: txId || undefined,
+        screenshotUrl: imageUrl,
+      })
+    } catch (emailErr) {
+      console.error('[Screenshot Email Error]:', emailErr)
+    }
 
     return apiSuccess({ message: 'Screenshot submitted successfully! Admin will review and approve shortly.' })
   } catch (err: any) {

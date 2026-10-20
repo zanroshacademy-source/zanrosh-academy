@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
 import { apiError } from '@/lib/utils'
 import { getServerAuth } from '@/lib/server-auth'
 import { sendCourseUnlockedEmail } from '@/lib/mailer'
@@ -113,22 +114,23 @@ export async function GET(request: Request) {
         const userName = clerkUser.firstName ?? undefined
 
         // Get item title
-        let itemTitle = ''
+        let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
         if (payment.chapterId) {
           const ch = await Chapter.findById(payment.chapterId).select('title').lean()
           itemTitle = (ch as any)?.title ?? 'Unit'
+        } else if (payment.courseId) {
+          const co = await Course.findById(payment.courseId).select('title').lean()
+          itemTitle = (co as any)?.title ?? 'Course'
         }
 
-        if (userEmail) {
-          await sendCourseUnlockedEmail({
-            to: userEmail,
-            userName,
-            itemTitle,
-            price: payment.amount,
-            itemType,
-            expiresAt: expiresAt ?? null,
-          })
-        }
+        await sendCourseUnlockedEmail({
+          to: userEmail,
+          userName,
+          itemTitle,
+          price: payment.amount,
+          itemType,
+          expiresAt: expiresAt ?? null,
+        })
       } catch (emailErr) {
         console.error('[Easypaisa verify] Email error (non-fatal):', emailErr)
       }
