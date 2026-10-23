@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const RESEND_KEY = Buffer.from('cmVfaDllOW1VN21fQ2VtOEFtbTZOdmh4NWI5UjN6NzR4Z2Va', 'base64').toString('utf-8')
+const RESEND_KEY = Buffer.from('cmVfNWd4ZVBCS3JfUDFSU0JvVFEyV3FEbmViektHMUVYN0pr', 'base64').toString('utf-8')
 const resend = new Resend(RESEND_KEY)
 
 const result = await resend.emails.send({
@@ -15,15 +15,19 @@ const result = await resend.emails.send({
       </div>
       <h2 style="color:#27187e;">✅ Email System is Working!</h2>
       <p style="color:#475569;">This is a test email confirming that your Resend email setup is correctly configured.</p>
-      <p style="color:#475569;">From now on, you will receive emails at <strong>zanroshacademy@gmail.com</strong> whenever:</p>
+      <p style="color:#475569;">From now on you will receive emails at <strong>zanroshacademy@gmail.com</strong> whenever:</p>
       <ul style="color:#475569;">
         <li>A student completes a payment (auto-approved Easypaisa)</li>
         <li>A student submits a payment screenshot request</li>
         <li>An admin approves a screenshot payment</li>
       </ul>
-      <p style="color:#64748b;font-size:13px;margin-top:20px;">Sent: ${new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
+      <p style="color:#64748b;font-size:13px;margin-top:20px;">Sent at: ${new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
     </div>
   `
 })
 
-console.log('Send result:', JSON.stringify(result, null, 2))
+if (result.error) {
+  console.error('FAILED:', JSON.stringify(result.error))
+} else {
+  console.log('SUCCESS — Email sent! ID:', result.data?.id)
+}
