@@ -12,8 +12,15 @@ export default function HomeNavbar() {
   return (
     <nav className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between border border-white/20 shadow-md relative z-50">
       {/* Left: Logo */}
-      <Link href="/" className="text-2xl font-bold tracking-tight text-[#27187e]">
-        Zanrosh
+      <Link href="/" className="flex items-center gap-3 shrink-0" style={{ textDecoration: 'none' }}>
+        <img
+          src="/logo.jpeg"
+          alt="Zanrosh Academy"
+          className="w-10 h-10 rounded-xl object-contain shadow-sm border border-[#27187e]/10 bg-white"
+        />
+        <span className="font-black text-xl tracking-tight text-[#27187e]">
+          Zanrosh <span className="text-[#3a86ff]">Academy</span>
+        </span>
       </Link>
 
       {/* Center: Desktop Links */}

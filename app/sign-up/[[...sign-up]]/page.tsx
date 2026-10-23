@@ -13,8 +13,15 @@ export default function SignUpPage() {
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
         
         <div className="relative z-10">
-          <Link href="/" className="text-3xl font-black tracking-tight text-white mb-16 inline-block">
-            Zanrosh
+          <Link href="/" className="inline-flex items-center gap-3 mb-12 text-white" style={{ textDecoration: 'none' }}>
+            <img
+              src="/logo.jpeg"
+              alt="Zanrosh Academy"
+              className="w-10 h-10 rounded-xl object-contain bg-white shadow-md border border-white/20 p-0.5"
+            />
+            <span className="text-2xl font-black tracking-tight text-white">
+              Zanrosh <span className="text-amber-300">Academy</span>
+            </span>
           </Link>
           <h1 className="text-4xl xl:text-5xl font-black mb-6 leading-tight">
             Start your learning journey today.

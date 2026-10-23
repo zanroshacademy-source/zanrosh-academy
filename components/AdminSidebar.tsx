@@ -36,17 +36,24 @@ export default function AdminSidebar({ role = 'admin' }: AdminSidebarProps) {
     <aside className="sidebar">
       {/* Brand */}
       <div style={{ marginBottom: '1.5rem', padding: '0 0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem', textDecoration: 'none' }}>
+          <img
+            src="/logo.jpeg"
+            alt="Zanrosh Academy"
+            style={{ width: 32, height: 32, borderRadius: '0.5rem', objectFit: 'contain', background: '#fff', border: '1px solid rgba(39,24,126,0.1)' }}
+          />
+          <span style={{ fontWeight: 900, fontSize: '0.95rem', color: '#27187e', letterSpacing: '-0.02em' }}>
+            Zanrosh <span style={{ color: '#3a86ff' }}>Academy</span>
+          </span>
+        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {isSuperAdmin
-            ? <Crown size={20} color="var(--amber)" />
-            : <GraduationCap size={20} color="var(--accent-light)" />}
-          <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+            ? <Crown size={18} color="var(--amber)" />
+            : <GraduationCap size={18} color="var(--accent-light)" />}
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
             {isSuperAdmin ? 'Super Admin' : 'Admin Panel'}
           </span>
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', paddingLeft: '1.75rem' }}>
-          Zanrosh Academy
-        </p>
       </div>
 
       {/* Nav links */}

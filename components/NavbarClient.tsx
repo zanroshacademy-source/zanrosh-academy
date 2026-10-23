@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, Shield, Crown, GraduationCap, Menu, X } from 'lucide-react'
+import { BookOpen, LayoutDashboard, Shield, Crown, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth, UserButton } from '@clerk/nextjs'
 
@@ -27,12 +27,14 @@ export default function NavbarClient({ role }: NavbarClientProps) {
   return (
     <nav className="navbar">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2.5 text-decoration-none shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-[#27187e] flex items-center justify-center shadow-sm">
-          <GraduationCap size={20} color="white" />
-        </div>
-        <span className="font-black text-lg text-[#27187e] tracking-tight">
-          Zanrosh <span className="text-[#4A5043]">Academy</span>
+      <Link href="/" className="flex items-center gap-3 text-decoration-none shrink-0">
+        <img
+          src="/logo.jpeg"
+          alt="Zanrosh Academy"
+          className="w-10 h-10 rounded-xl object-contain shadow-sm border border-[#27187e]/10 bg-white"
+        />
+        <span className="font-black text-xl tracking-tight text-[#27187e]">
+          Zanrosh <span className="text-[#3a86ff]">Academy</span>
         </span>
       </Link>
 

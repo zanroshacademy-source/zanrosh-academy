@@ -289,8 +289,15 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 border-b border-white/10 pb-12 mb-8">
           
            <div className="flex flex-col md:w-1/3 text-center md:text-left">
-             <Link href="/" className="text-3xl font-black tracking-tight text-white mb-2">
-               Zanrosh
+             <Link href="/" className="inline-flex items-center gap-3 mb-3 text-white" style={{ textDecoration: 'none' }}>
+               <img
+                 src="/logo.jpeg"
+                 alt="Zanrosh Academy"
+                 className="w-10 h-10 rounded-xl object-contain bg-white shadow-md border border-white/20 p-0.5"
+               />
+               <span className="text-2xl font-black tracking-tight text-white">
+                 Zanrosh <span className="text-amber-300">Academy</span>
+               </span>
              </Link>
              <p className="text-gray-400 text-sm mb-4">Empowering Balochistan's students with modern education.</p>
              <div className="text-gray-400 text-sm flex flex-col gap-1">
