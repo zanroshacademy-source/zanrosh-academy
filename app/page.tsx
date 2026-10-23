@@ -85,18 +85,12 @@ export default async function HomePage() {
             
             <FadeIn delay={1200} duration={1000} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-4 sm:px-0">
               <Link
-                href="/sign-up"
+                href="/courses"
                 className="group relative bg-[#3a86ff] text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_30px_rgba(58,134,255,0.5)] active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
               >
-                <span className="relative z-10">Start Learning Free</span>
+                <span className="relative z-10">Browse Courses</span>
                 <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full" />
-              </Link>
-              <Link
-                href="/courses"
-                className="group border border-white/40 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-[#27187e] hover:scale-105 active:scale-100 flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <PlayCircle size={20} /> Browse Courses
               </Link>
             </FadeIn>
           </div>

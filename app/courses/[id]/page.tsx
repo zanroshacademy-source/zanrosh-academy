@@ -139,7 +139,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
         <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
           <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Units</h2>
           <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
-            Buy each unit individually for {formatPKR(400)}. Access lasts 15 days from payment approval.
+            Buy each unit individually. Access duration is set per unit.
           </p>
 
           <div className="flex flex-col gap-4">

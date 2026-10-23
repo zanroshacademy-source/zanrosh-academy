@@ -6,8 +6,6 @@ import Payment from '@/models/Payment'
 import { apiError } from '@/lib/utils'
 import { z } from 'zod'
 import crypto from 'crypto'
-import { sendPaymentRequestEmail } from '@/lib/mailer'
-
 // ─── Easypaisa REST API Config ───────────────────────────────────────────────
 const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
 const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || ''
@@ -147,20 +145,6 @@ export async function POST(request: Request) {
       { easypaisaRef: orderId },
       { $set: { transactionId: epData.transactionId || orderId } }
     )
-
-    // Notify zanroshacademy@gmail.com about the payment request initiated
-    try {
-      await sendPaymentRequestEmail({
-        userEmail: emailAddress,
-        itemTitle,
-        price,
-        itemType,
-        method: `Easypaisa Mobile Account (${mobileAccountNo})`,
-        transactionId: epData.transactionId || orderId,
-      })
-    } catch (e) {
-      console.error('[Easypaisa MA] Payment request email error:', e)
-    }
 
     return Response.json({
       success:       true,

@@ -72,7 +72,7 @@ export default async function BuyPage({
             <ArrowLeft size={16} /> Back to Course
           </Link>
           <h1 className="text-3xl md:text-4xl font-black text-[#27187e]">Complete your purchase</h1>
-          <p className="text-[#4A5043]/70">You are buying access to a single unit for 15 days.</p>
+          <p className="text-[#4A5043]/70">You are buying access to a single unit for {item.accessDays ?? 15} days.</p>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export default async function BuyPage({
               <div className="bg-[#27187e] rounded-2xl p-6 flex justify-between items-center text-white shadow-md">
                 <div>
                   <span className="block text-[#f7f7ff]/70 text-sm font-bold uppercase tracking-wider mb-1">Total Due</span>
-                  <span className="text-sm font-medium">15 days access</span>
+                  <span className="text-sm font-medium">{item.accessDays ?? 15} days access</span>
                 </div>
                 <span className="font-black text-3xl">{formatPKR(item.price)}</span>
               </div>
@@ -143,7 +143,7 @@ export default async function BuyPage({
                 <BookOpen size={20} /> What's Included
               </h3>
               
-              <p className="text-[#4A5043] mb-6 font-medium">You are purchasing a single unit. This grants you <strong className="text-[#27187e]">15 days of access</strong> to watch all {topics.length} video topics in this unit.</p>
+              <p className="text-[#4A5043] mb-6 font-medium">You are purchasing a single unit. This grants you <strong className="text-[#27187e]">{item.accessDays ?? 15} days of access</strong> to watch all {topics.length} video topics in this unit.</p>
               
               <div className="bg-[#f7f7ff] p-5 rounded-2xl border border-gray-100 mb-6">
                 <h4 className="font-black text-[#27187e] mb-2">{item.title}</h4>
