@@ -1,7 +1,8 @@
 import { Resend } from 'resend'
 
-// Hardcoded Resend API key (works on Vercel without configuring environment variables)
-const RESEND_KEY = process.env.RESEND_API_KEY || Buffer.from('cmVfaDllOW1VN21fQ2VtOEFtbTZOdmh4NWI5UjN6NzR4Z2Va', 'base64').toString('utf-8')
+// Resend API key — set RESEND_API_KEY in your Vercel environment variables
+// Get a new key from https://resend.com → API Keys → Create API Key
+const RESEND_KEY = process.env.RESEND_API_KEY || ''
 const resend = new Resend(RESEND_KEY)
 
 // "From" address — while in Resend free/testing mode this works fine.
@@ -28,6 +29,11 @@ export interface CourseUnlockedEmailData {
  */
 export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
   const { to, userName, itemTitle, price, itemType, expiresAt } = data
+
+  if (!RESEND_KEY) {
+    console.warn('[Mailer] RESEND_API_KEY not configured — skipping email')
+    return
+  }
 
   const greeting = userName ? `Hi ${userName}` : 'Hello'
   const typeLabel = itemType === 'course' ? 'course' : 'unit'
@@ -196,6 +202,11 @@ export interface PaymentRequestEmailData {
  */
 export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
   const { userName, userEmail, itemTitle, price, itemType, method, transactionId, screenshotUrl } = data
+
+  if (!RESEND_KEY) {
+    console.warn('[Mailer] RESEND_API_KEY not configured — skipping email')
+    return
+  }
 
   const typeLabel = itemType === 'course' ? 'course' : 'unit'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zanroshacademy.com'

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, Video, Layers, ArrowRight, Clock } from 'lucide-react'
-import { formatPKR } from '@/lib/utils'
 
 // Always show these class filter buttons regardless of what's in the DB
 const CLASS_FILTERS = ['9th Class', '10th Class', '11th Class', '12th Class']
@@ -59,13 +58,7 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
                       <Layers size={12} /> {course.classLevel}
                     </span>
                   </div>
-                  {course.unitCount > 0 && (
-                    <div className="absolute bottom-3 right-3 z-20">
-                      <span className="bg-[#3a86ff] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md">
-                        from {formatPKR(400)}/unit
-                      </span>
-                    </div>
-                  )}
+
                   {course.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -121,12 +114,6 @@ export default function CourseFilters({ courses }: { courses: any[] }) {
 
                   {/* CTA row */}
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[#4A5043]/50 text-xs font-bold">Per unit</div>
-                      <div className="text-[#27187e] font-black text-lg">
-                        {course.isFree ? 'FREE' : formatPKR(400)}
-                      </div>
-                    </div>
                     <div className="flex items-center gap-1.5 text-[#4A5043]/60 text-xs font-bold">
                       <Clock size={12} /> Full unit access
                     </div>
