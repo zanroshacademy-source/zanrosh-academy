@@ -49,16 +49,15 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
           stopPolling()
           setStage('success')
           setTimeout(() => {
-            if (data.itemType === 'course') router.push(`/courses/${data.itemId}`)
-            else router.push('/dashboard')
-          }, 2000)
+            router.push('/dashboard')
+          }, 1500)
         } else if (data.status === 'FAILED') {
           stopPolling()
           setStage('failed')
           setError(data.message || 'Payment was declined.')
         }
       } catch { /* keep polling */ }
-    }, 4000)
+    }, 3000)
   }
 
   const reset = () => {
@@ -89,6 +88,15 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed to initiate payment'); setStage('idle'); return }
+
+      if (data.status === 'PAID') {
+        setStage('success')
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 1500)
+        return
+      }
+
       setOrderId(data.orderId)
       setMessage(data.message || 'Please approve the USSD prompt on your phone.')
       setStage('waiting')
@@ -120,7 +128,7 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
       const res  = await fetch('/api/easypaisa/screenshot', { method: 'POST', body: fd })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Upload failed'); setStage('idle'); return }
-      setMessage(data.message || 'Submitted! Admin will review shortly.')
+      setMessage(data.message || 'You will get access in 24 hours for this course.')
       setStage('submitted')
     } catch (e: any) { setError(e.message || 'Upload failed'); setStage('idle') }
   }
@@ -130,7 +138,7 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
     <div className="flex flex-col items-center gap-3 p-6 bg-green-50 rounded-xl border border-green-200 text-green-700 mt-4">
       <CheckCircle2 size={40} className="text-green-500" />
       <p className="font-bold text-lg">Payment Successful!</p>
-      <p className="text-sm">Redirecting to your course…</p>
+      <p className="text-sm">Redirecting to your dashboard…</p>
     </div>
   )
 
@@ -138,8 +146,8 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
     <div className="flex flex-col items-center gap-3 p-6 bg-blue-50 rounded-xl border border-blue-200 text-blue-700 mt-4">
       <CheckCircle2 size={40} className="text-blue-500" />
       <p className="font-bold text-lg">Screenshot Submitted! ✅</p>
-      <p className="text-sm text-center">{message}</p>
-      <p className="text-xs text-center text-blue-500">You will receive access once the admin approves your payment.</p>
+      <p className="text-sm text-center font-bold text-blue-900">You will get access in 24 hours for this course.</p>
+      <p className="text-xs text-center text-blue-500">Our admin team is reviewing your screenshot.</p>
     </div>
   )
 

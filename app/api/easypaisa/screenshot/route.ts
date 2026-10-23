@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       console.error('[Screenshot Email Error]:', emailErr)
     }
 
-    return apiSuccess({ message: 'Screenshot submitted successfully! Admin will review and approve shortly.' })
+    return apiSuccess({ message: 'You will get access in 24 hours for this course.' })
   } catch (err: any) {
     console.error('[Screenshot Upload] Error:', err)
     return apiError(err.message || 'Server error', 500)

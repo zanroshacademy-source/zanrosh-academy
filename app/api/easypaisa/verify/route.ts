@@ -8,9 +8,9 @@ import { getServerAuth } from '@/lib/server-auth'
 import { sendCourseUnlockedEmail } from '@/lib/mailer'
 
 // ─── Easypaisa REST API Config ───────────────────────────────────────────────
-const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
-const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || ''
-const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || ''
+const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID     || '1294821'
+const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || 'ZANROSHACADEMY'
+const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || '95df2847c71b6bfbf871ed40c2c6e68c'
 const EP_ACCOUNT_NUM = process.env.EASYPAISA_ACCOUNT_NUM  || '173397419'
 // Production mode
 const EP_SANDBOX     = false

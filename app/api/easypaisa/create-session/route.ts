@@ -3,13 +3,16 @@ import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
 import Payment from '@/models/Payment'
+import Purchase from '@/models/Purchase'
 import { apiError } from '@/lib/utils'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { sendCourseUnlockedEmail } from '@/lib/mailer'
+
 // ─── Easypaisa REST API Config ───────────────────────────────────────────────
-const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID    || '1294821'
-const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || ''
-const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || ''
+const EP_STORE_ID    = process.env.EASYPAISA_STORE_ID     || '1294821'
+const EP_API_USER    = process.env.EASYPAISA_API_USERNAME || 'ZANROSHACADEMY'
+const EP_API_PASS    = process.env.EASYPAISA_API_PASSWORD || '95df2847c71b6bfbf871ed40c2c6e68c'
 const EP_ACCOUNT_NUM = process.env.EASYPAISA_ACCOUNT_NUM  || '173397419' // EWP Account #
 // Production mode
 const EP_SANDBOX     = false
@@ -139,18 +142,73 @@ export async function POST(request: Request) {
       return apiError(msg, 400)
     }
 
-    // ── Transaction initiated — user will get USSD prompt on phone ─────────────
-    // Save transactionId from Easypaisa for later verification
+    // ── Transaction initiated & approved directly for Easypaisa Mobile Account ──
+    const finalTxId = epData.transactionId || orderId
+
     await Payment.updateOne(
       { easypaisaRef: orderId },
-      { $set: { transactionId: epData.transactionId || orderId } }
+      {
+        $set: {
+          transactionId: finalTxId,
+          status: 'approved',
+          screenshotUrl: 'easypaisa_direct',
+        },
+      }
     )
+
+    // Calculate expiry based on chapter accessDays
+    let expiresAt: Date | null = null
+    if (itemType === 'chapter') {
+      const chapter = await Chapter.findById(itemId).select('accessDays').lean()
+      const days = (chapter as any)?.accessDays ?? 15
+      expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+    }
+
+    // Create approved Purchase immediately so student gets instant access
+    const payment = await Payment.findOne({ easypaisaRef: orderId })
+    if (payment) {
+      const pd: any = { userId, paymentId: payment._id, status: 'approved' }
+      if (itemType === 'course') pd.courseId = itemId
+      else { pd.chapterId = itemId; if (expiresAt) pd.expiresAt = expiresAt }
+
+      const existingPurchase = await Purchase.findOne({ paymentId: payment._id })
+      if (!existingPurchase) {
+        await Purchase.create(pd)
+      } else {
+        await Purchase.updateOne({ _id: existingPurchase._id }, { $set: { status: 'approved', expiresAt } })
+      }
+    }
+
+    // ── Send confirmation emails:
+    // 1. To student: course unlocked confirmation
+    // 2. To admin: notification that someone bought the course
+    try {
+      let userName: string | undefined = undefined
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const client = await clerkClient()
+        const clerkUser = await client.users.getUser(userId)
+        userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined
+      } catch {}
+
+      await sendCourseUnlockedEmail({
+        to: emailAddress,
+        userName,
+        itemTitle,
+        price,
+        itemType,
+        expiresAt,
+      })
+    } catch (e) {
+      console.error('[Easypaisa MA] Send course unlocked email error:', e)
+    }
 
     return Response.json({
       success:       true,
       orderId,
-      transactionId: epData.transactionId,
-      message:       'Payment request sent! Please approve the prompt on your phone.',
+      transactionId: finalTxId,
+      status:        'PAID',
+      message:       'Payment successful! Redirecting to your dashboard...',
     })
 
   } catch (err: any) {

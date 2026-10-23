@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db'
 import Purchase from '@/models/Purchase'
 import Payment from '@/models/Payment'
+import Chapter from '@/models/Chapter'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
@@ -10,6 +11,39 @@ import { formatPKR } from '@/lib/utils'
 
 async function getDashboardData(userId: string) {
   await connectDB()
+
+  // Auto-approve any direct Easypaisa payments that were pending
+  try {
+    const stuckPayments = await Payment.find({
+      userId,
+      method: 'easypaisa',
+      status: 'pending',
+      screenshotUrl: { $in: ['easypaisa_pending', 'easypaisa_direct'] },
+    })
+
+    for (const p of stuckPayments) {
+      p.status = 'approved'
+      await p.save()
+
+      const existingPurchase = await Purchase.findOne({ paymentId: p._id })
+      if (!existingPurchase) {
+        let expiresAt: Date | null = null
+        if (p.chapterId) {
+          const chapter = await Chapter.findById(p.chapterId).select('accessDays').lean()
+          const days = (chapter as any)?.accessDays ?? 15
+          expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        }
+        const pd: any = { userId, paymentId: p._id, status: 'approved' }
+        if (p.courseId) pd.courseId = p.courseId
+        if (p.chapterId) { pd.chapterId = p.chapterId; if (expiresAt) pd.expiresAt = expiresAt }
+        await Purchase.create(pd)
+      } else {
+        await Purchase.updateOne({ _id: existingPurchase._id }, { $set: { status: 'approved' } })
+      }
+    }
+  } catch (syncErr) {
+    console.error('[Dashboard] Error auto-syncing direct Easypaisa payments:', syncErr)
+  }
 
   const [purchases, payments] = await Promise.all([
     Purchase.find({ userId })
