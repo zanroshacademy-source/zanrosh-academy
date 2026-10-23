@@ -1,8 +1,15 @@
 import { Resend } from 'resend'
 
-// Resend API key — hardcoded directly for production use
-const RESEND_KEY = process.env.RESEND_API_KEY || Buffer.from('cmVfNWd4ZVBCS3JfUDFSU0JvVFEyV3FEbmViektHMUVYN0pr', 'base64').toString('utf-8')
-const resend = new Resend(RESEND_KEY)
+// Resend client helper — safely initialized so it never crashes Next.js build
+function getResend() {
+  const key = process.env.RESEND_API_KEY || Buffer.from('cmVfNWd4ZVBCS3JfUDFSU0JvVFEyV3FEbmViektHMUVYN0pr', 'base64').toString('utf-8')
+  if (!key) return null
+  try {
+    return new Resend(key)
+  } catch {
+    return null
+  }
+}
 
 // "From" address — while in Resend free/testing mode this works fine.
 // Once you verify your domain in Resend dashboard you can change to:
@@ -29,8 +36,9 @@ export interface CourseUnlockedEmailData {
 export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
   const { to, userName, itemTitle, price, itemType, expiresAt } = data
 
-  if (!RESEND_KEY) {
-    console.warn('[Mailer] RESEND_API_KEY not configured — skipping email')
+  const resend = getResend()
+  if (!resend) {
+    console.warn('[Mailer] Resend client not configured — skipping email')
     return
   }
 
@@ -202,8 +210,9 @@ export interface PaymentRequestEmailData {
 export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
   const { userName, userEmail, itemTitle, price, itemType, method, transactionId, screenshotUrl } = data
 
-  if (!RESEND_KEY) {
-    console.warn('[Mailer] RESEND_API_KEY not configured — skipping email')
+  const resend = getResend()
+  if (!resend) {
+    console.warn('[Mailer] Resend client not configured — skipping email')
     return
   }
 
