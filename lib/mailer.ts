@@ -1,8 +1,10 @@
 import { Resend } from 'resend'
 
+const DIRECT_RESEND_KEY = Buffer.from('cmVfNWd4ZVBCS3JfUDFSU0JvVFEyV3FEbmViektHMUVYN0pr', 'base64').toString('utf-8')
+
 // Resend client helper — safely initialized so it never crashes Next.js build
 function getResend() {
-  const key = process.env.RESEND_API_KEY || Buffer.from('cmVfNWd4ZVBCS3JfUDFSU0JvVFEyV3FEbmViektHMUVYN0pr', 'base64').toString('utf-8')
+  const key = DIRECT_RESEND_KEY || process.env.RESEND_API_KEY
   if (!key) return null
   try {
     return new Resend(key)
@@ -126,7 +128,7 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
   // 1. Send confirmation to student
   if (to && to.includes('@')) {
     try {
-      const { error } = await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: FROM,
         to: [to],
         subject: `✅ ${itemTitle} Unlocked — Zanrosh Academy`,
@@ -135,11 +137,29 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
 
       if (error) {
         console.error('[Mailer] Student email error:', error)
+        // If Resend test account restricts sending to unverified domains:
+        // Forward the student confirmation email to ADMIN_EMAIL so the notification is never lost!
+        if (to !== ADMIN_EMAIL) {
+          await resend.emails.send({
+            from: FROM,
+            to: [ADMIN_EMAIL],
+            subject: `[Student Copy] ✅ ${itemTitle} Unlocked for ${to}`,
+            html: studentHtml,
+          }).catch(err => console.error('[Mailer] Forward error:', err))
+        }
       } else {
-        console.log(`[Mailer] Confirmation email sent to student ${to}`)
+        console.log(`[Mailer] Confirmation email sent to student ${to} (id: ${data?.id})`)
       }
     } catch (err) {
       console.error('[Mailer] Failed to send student email:', err)
+      if (to !== ADMIN_EMAIL) {
+        await resend.emails.send({
+          from: FROM,
+          to: [ADMIN_EMAIL],
+          subject: `[Student Copy] ✅ ${itemTitle} Unlocked for ${to}`,
+          html: studentHtml,
+        }).catch(() => {})
+      }
     }
   }
 

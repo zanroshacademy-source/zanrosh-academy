@@ -187,11 +187,20 @@ export default async function WatchTopicPage({
               <span className="text-white/40 text-xs font-bold uppercase tracking-widest">
                 {course?.title}
               </span>
-              {daysRemaining !== null && (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              {topic.duration > 0 && (
+                <span className="bg-white/10 text-white/80 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Clock size={11} /> {formatDuration(topic.duration)}
+                </span>
+              )}
+              {daysRemaining !== null ? (
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                   daysRemaining <= 3 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'
                 }`}>
-                  {daysRemaining}d left
+                  {daysRemaining}d access left
+                </span>
+              ) : (
+                <span className="bg-white/10 text-white/70 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  {topic.accessDays || unit?.accessDays || 15} days access
                 </span>
               )}
             </div>

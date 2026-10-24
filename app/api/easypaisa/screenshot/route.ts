@@ -76,9 +76,24 @@ export async function POST(request: Request) {
     else oldQ.topicId = itemId
     await Payment.deleteMany(oldQ)
 
+    // Get student details
+    let userEmail = ''
+    let userName = ''
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server')
+      const client = await clerkClient()
+      const clerkUser = await client.users.getUser(userId)
+      userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
+      userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || ''
+    } catch (e) {
+      console.warn('[Screenshot] Could not fetch clerk user:', e)
+    }
+
     // Create pending payment with screenshot
     const payData: any = {
       userId,
+      userEmail,
+      userName,
       method:        methodName,
       amount:        price,
       transactionId: txId || `SCREENSHOT-${Date.now()}`,
@@ -92,15 +107,9 @@ export async function POST(request: Request) {
 
     // Notify zanroshacademy@gmail.com and student
     try {
-      const { clerkClient } = await import('@clerk/nextjs/server')
-      const client = await clerkClient()
-      const clerkUser = await client.users.getUser(userId)
-      const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
-      const userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined
-
       await sendPaymentRequestEmail({
-        userName,
-        userEmail,
+        userName: userName || undefined,
+        userEmail: userEmail || undefined,
         itemTitle,
         price,
         itemType,

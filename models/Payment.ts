@@ -3,6 +3,8 @@ import type { PaymentMethod, PaymentStatus } from '@/lib/types'
 
 export interface IPaymentDocument extends Document {
   userId: string // clerkId
+  userEmail?: string
+  userName?: string
   courseId?: mongoose.Types.ObjectId
   chapterId?: mongoose.Types.ObjectId
   topicId?: mongoose.Types.ObjectId   // for topic-level purchases
@@ -26,6 +28,8 @@ export interface IPaymentDocument extends Document {
 const PaymentSchema = new Schema<IPaymentDocument>(
   {
     userId: { type: String, required: true, index: true },
+    userEmail: { type: String, default: '' },
+    userName: { type: String, default: '' },
     courseId: {
       type: Schema.Types.ObjectId,
       ref: 'Course',

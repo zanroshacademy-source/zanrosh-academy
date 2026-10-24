@@ -8,7 +8,7 @@ import Topic from '@/models/Topic'
 import { isAdmin } from '@/lib/auth'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { z } from 'zod'
-import { sendCourseUnlockedEmail } from '@/lib/mailer'
+import { sendCourseUnlockedEmail, ADMIN_EMAIL } from '@/lib/mailer'
 
 const ApproveSchema = z.object({
   status: z.enum(['approved', 'rejected']),
@@ -83,11 +83,20 @@ export async function PATCH(
     // ── Send confirmation email to buyer ──────────────────────────────────────
     if (status === 'approved') {
       try {
-        const { clerkClient } = await import('@clerk/nextjs/server')
-        const client = await clerkClient()
-        const clerkUser = await client.users.getUser(payment.userId)
-        const userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
-        const userName = clerkUser.firstName ?? undefined
+        let userEmail = (payment as any).userEmail || ''
+        let userName = (payment as any).userName || ''
+
+        if (!userEmail) {
+          try {
+            const { clerkClient } = await import('@clerk/nextjs/server')
+            const client = await clerkClient()
+            const clerkUser = await client.users.getUser(payment.userId)
+            userEmail = clerkUser.emailAddresses?.[0]?.emailAddress ?? ''
+            userName = clerkUser.firstName ?? ''
+          } catch (clerkErr) {
+            console.warn('[Admin Approve] Could not fetch clerk user info:', clerkErr)
+          }
+        }
 
         let itemTitle = 'Your purchase'
         const itemType: 'course' | 'chapter' | 'topic' = (payment as any).topicId ? 'topic' : payment.chapterId ? 'chapter' : 'course'
@@ -103,8 +112,8 @@ export async function PATCH(
         }
 
         await sendCourseUnlockedEmail({
-          to: userEmail,
-          userName,
+          to: userEmail || ADMIN_EMAIL,
+          userName: userName || undefined,
           itemTitle,
           price: payment.amount,
           itemType,

@@ -343,14 +343,16 @@ function UnitSection({
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-[#4A5043]/50 text-xs font-medium mt-0.5">
-                        {topic.duration > 0 && (
-                          <span className="flex items-center gap-1">
-                            <Clock size={11} /> {formatDuration(topic.duration)}
-                          </span>
-                        )}
-                        {!isUnlocked && (
+                        <span className="flex items-center gap-1">
+                          <Clock size={11} /> {topic.duration > 0 ? formatDuration(topic.duration) : 'Video Lesson'}
+                        </span>
+                        {!isUnlocked ? (
                           <span>· {topicAccessDays} Days Access</span>
-                        )}
+                        ) : topicExp && !isTopicExpired ? (
+                          <span className="text-emerald-700 font-bold">
+                            · {Math.max(1, Math.ceil((topicExp.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days access left
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </div>

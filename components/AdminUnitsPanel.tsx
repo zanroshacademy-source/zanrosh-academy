@@ -213,11 +213,9 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
                                       <Lock size={11} /> No video
                                     </span>
                                   )}
-                                  {topic.duration && topic.duration > 0 && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock size={11} />{formatDuration(topic.duration)}
-                                    </span>
-                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <Clock size={11} />{topic.duration && topic.duration > 0 ? formatDuration(topic.duration) : 'No time set'}
+                                  </span>
                                   <span className="flex items-center gap-1">
                                     <Clock size={11} />{topic.accessDays ?? unit.accessDays ?? 15}d access
                                   </span>

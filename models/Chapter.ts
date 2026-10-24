@@ -35,7 +35,7 @@ const ChapterSchema = new Schema<IChapterDocument>(
     cloudinaryPublicId: { type: String, default: '' },
     videoProvider:      { type: String, default: '' },
     duration:           { type: Number, default: 0 },
-    price:              { type: Number, default: 400 },
+    price:              { type: Number, default: 0 },
     order:              { type: Number, required: true, default: 0 },
     isFree:             { type: Boolean, default: false },
     isPublished:        { type: Boolean, default: false },

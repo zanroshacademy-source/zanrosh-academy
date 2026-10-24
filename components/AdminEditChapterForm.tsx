@@ -42,7 +42,7 @@ export default function AdminEditChapterForm({ chapter, onClose }: AdminEditChap
         body: JSON.stringify({
           title,
           description,
-          price: price === '' || isNaN(parseFloat(price)) ? 400 : parseFloat(price),
+          price: price === '' || isNaN(parseFloat(price)) ? 0 : parseFloat(price),
           accessDays: accessDays === '' || isNaN(parseInt(accessDays)) ? 15 : parseInt(accessDays),
           isFree,
           isPublished,

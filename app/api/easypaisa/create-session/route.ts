@@ -100,6 +100,7 @@ export async function POST(request: Request) {
       screenshotUrl: 'easypaisa_pending',
       status:        'pending',
       easypaisaRef:  orderId,
+      userEmail:     emailAddress,
     }
     if (itemType === 'course') paymentData.courseId = itemId
     else if (itemType === 'chapter') paymentData.chapterId = itemId
