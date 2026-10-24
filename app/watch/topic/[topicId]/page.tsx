@@ -44,26 +44,47 @@ export default async function WatchTopicPage({
   if (!topic.isPublished && !superAdmin) notFound()
 
   // ── Access Check ───────────────────────────────────────────────────
-  let canWatch = superAdmin || unit?.isFree
+  let canWatch = superAdmin || unit?.isFree || topic?.isFree
   let isExpired = false
   let expiresAt: Date | null = null
 
-  if (!canWatch && userId && unit) {
-    const purchase = await Purchase.findOne({
+  if (!canWatch && userId) {
+    // 1. Check direct Topic purchase
+    const topicPurchase = await Purchase.findOne({
       userId,
-      chapterId: topic.unitId,
+      topicId: topic._id,
       status: 'approved',
     }).lean() as any
 
-    if (purchase) {
-      expiresAt = purchase.expiresAt ?? null
+    if (topicPurchase) {
+      expiresAt = topicPurchase.expiresAt ?? null
       if (expiresAt && expiresAt < new Date()) {
         isExpired = true
       } else {
         canWatch = true
       }
-    } else {
-      // Check full-course purchase
+    }
+
+    // 2. Check Unit (Chapter) purchase (backward compatibility)
+    if (!canWatch && !isExpired && unit) {
+      const unitPurchase = await Purchase.findOne({
+        userId,
+        chapterId: topic.unitId,
+        status: 'approved',
+      }).lean() as any
+
+      if (unitPurchase) {
+        expiresAt = unitPurchase.expiresAt ?? null
+        if (expiresAt && expiresAt < new Date()) {
+          isExpired = true
+        } else {
+          canWatch = true
+        }
+      }
+    }
+
+    // 3. Check full-course purchase (backward compatibility)
+    if (!canWatch && !isExpired) {
       const coursePurchase = await Purchase.findOne({
         userId,
         courseId: topic.courseId,
@@ -73,8 +94,8 @@ export default async function WatchTopicPage({
     }
   }
 
-  if (isExpired) redirect(`/buy/${topic.unitId}?type=chapter&expired=true`)
-  if (!canWatch) redirect(`/buy/${topic.unitId}?type=chapter`)
+  if (isExpired) redirect(`/buy/topic/${topicId}?expired=true`)
+  if (!canWatch) redirect(`/buy/topic/${topicId}`)
 
   // ── Video URL ──────────────────────────────────────────────────────
   let videoSrc = topic.videoUrl || ''

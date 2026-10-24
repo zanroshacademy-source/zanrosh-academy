@@ -17,7 +17,7 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
     price: '400',
     accessDays: '15',
     isFree: false,
-    isPublished: false,
+    isPublished: true,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -51,7 +51,7 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
       if (!res.ok) { setError(data.error || 'Failed to create unit'); return }
 
       setSuccess(true)
-      setForm({ title: '', description: '', price: '400', accessDays: '15', isFree: false, isPublished: false })
+      setForm({ title: '', description: '', price: '400', accessDays: '15', isFree: false, isPublished: true })
       setTimeout(() => router.refresh(), 100)
     } catch {
       setError('Network error. Please try again.')

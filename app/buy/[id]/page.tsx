@@ -36,7 +36,13 @@ export default async function BuyPage({
 
   await connectDB()
 
-  // Always assume buying a Unit (Chapter model)
+  // Check if id is actually a Topic
+  const isTopic = await Topic.findById(id).select('_id').lean()
+  if (isTopic) {
+    redirect(`/buy/topic/${id}`)
+  }
+
+  // Otherwise assume buying a Unit (Chapter model)
   const item = await Chapter.findById(id).lean()
   if (!item || !item.isPublished) notFound()
   if (item.isFree) redirect(`/courses/${item.courseId}`)

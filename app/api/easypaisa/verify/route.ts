@@ -3,6 +3,7 @@ import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
+import Topic from '@/models/Topic'
 import { apiError } from '@/lib/utils'
 import { getServerAuth } from '@/lib/server-auth'
 import { sendCourseUnlockedEmail } from '@/lib/mailer'
@@ -87,7 +88,11 @@ export async function GET(request: Request) {
       const existingPurchase = await Purchase.findOne({ paymentId: payment._id })
       let expiresAt: Date | null = null
       if (!existingPurchase) {
-        if (payment.chapterId) {
+        if (payment.topicId) {
+          const topic = await Topic.findById(payment.topicId).select('accessDays').lean()
+          const days = (topic as any)?.accessDays ?? 15
+          expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        } else if (payment.chapterId) {
           const chapter = await Chapter.findById(payment.chapterId).select('accessDays').lean()
           const days = (chapter as any)?.accessDays ?? 15
           expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
@@ -96,14 +101,15 @@ export async function GET(request: Request) {
         const pd: any = { userId, paymentId: payment._id, status: 'approved' }
         if (payment.courseId)  pd.courseId  = payment.courseId
         if (payment.chapterId) { pd.chapterId = payment.chapterId; if (expiresAt) pd.expiresAt = expiresAt }
+        if (payment.topicId)   { pd.topicId = payment.topicId; if (expiresAt) pd.expiresAt = expiresAt }
         await Purchase.create(pd)
-      } else if (existingPurchase && payment.chapterId) {
+      } else if (existingPurchase && (payment.chapterId || payment.topicId)) {
         // Already exists — still get expiry for email
         expiresAt = (existingPurchase as any).expiresAt ?? null
       }
 
-      const itemId   = payment.courseId?.toString() || payment.chapterId?.toString() || ''
-      const itemType = payment.courseId ? 'course' : 'chapter'
+      const itemId   = payment.topicId?.toString() || payment.chapterId?.toString() || payment.courseId?.toString() || ''
+      const itemType = payment.topicId ? 'topic' : payment.chapterId ? 'chapter' : 'course'
 
       // ── Send confirmation email ────────────────────────────────────────────
       try {
@@ -114,8 +120,11 @@ export async function GET(request: Request) {
         const userName = clerkUser.firstName ?? undefined
 
         // Get item title
-        let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
-        if (payment.chapterId) {
+        let itemTitle = 'Item'
+        if (payment.topicId) {
+          const tp = await Topic.findById(payment.topicId).select('title').lean()
+          itemTitle = (tp as any)?.title ?? 'Topic'
+        } else if (payment.chapterId) {
           const ch = await Chapter.findById(payment.chapterId).select('title').lean()
           itemTitle = (ch as any)?.title ?? 'Unit'
         } else if (payment.courseId) {

@@ -20,11 +20,21 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
     await connectDB()
     // Validate ObjectId format before querying to avoid CastError crash
     if (!/^[a-f\d]{24}$/i.test(id)) notFound()
-    payment = await Payment.findById(id).populate('chapterId', 'title price courseId').lean()
+    payment = await Payment.findById(id)
+      .populate('chapterId', 'title price courseId')
+      .populate('topicId', 'title price')
+      .populate('courseId', 'title price')
+      .lean()
     if (!payment) notFound()
   }
 
-  const ch = typeof payment.chapterId === 'object' ? payment.chapterId : { title: String(payment.chapterId), price: 0 }
+  const itemTitle = typeof payment.topicId === 'object' && payment.topicId
+    ? `🎬 Topic: ${payment.topicId?.title}`
+    : typeof payment.chapterId === 'object' && payment.chapterId
+    ? `📖 Unit: ${payment.chapterId?.title}`
+    : typeof payment.courseId === 'object' && payment.courseId
+    ? `📚 Course: ${payment.courseId?.title}`
+    : '—'
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -38,7 +48,7 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
         <h2 style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '1.05rem' }}>Payment Details</h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {[
-            { label: 'Chapter', value: ch?.title },
+            { label: 'Item', value: itemTitle },
             { label: 'Amount', value: formatPKR(payment.amount) },
             { label: 'Payment Method', value: payment.method === 'easypaisa' ? 'Easypaisa' : 'JazzCash' },
             { label: 'Transaction ID', value: payment.transactionId },

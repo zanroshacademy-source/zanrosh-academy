@@ -5,6 +5,7 @@ export interface IPaymentDocument extends Document {
   userId: string // clerkId
   courseId?: mongoose.Types.ObjectId
   chapterId?: mongoose.Types.ObjectId
+  topicId?: mongoose.Types.ObjectId   // for topic-level purchases
   method: PaymentMethod
   amount: number
   transactionId: string
@@ -32,6 +33,10 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     chapterId: {
       type: Schema.Types.ObjectId,
       ref: 'Chapter',
+    },
+    topicId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Topic',
     },
     method: {
       type: String,

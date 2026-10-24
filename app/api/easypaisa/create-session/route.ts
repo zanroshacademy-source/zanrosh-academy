@@ -2,6 +2,7 @@ import { getServerAuth } from '@/lib/server-auth'
 import { connectDB } from '@/lib/db'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
+import Topic from '@/models/Topic'
 import Payment from '@/models/Payment'
 import Purchase from '@/models/Purchase'
 import { apiError } from '@/lib/utils'
@@ -24,7 +25,7 @@ const EP_MA_URL = EP_SANDBOX
 
 const InitSchema = z.object({
   itemId:          z.string().min(1),
-  itemType:        z.enum(['course', 'chapter']),
+  itemType:        z.enum(['course', 'chapter', 'topic']),
   mobileAccountNo: z.string().regex(/^03\d{9}$/, 'Invalid mobile number. Must be 03XXXXXXXXX (11 digits)'),
   emailAddress:    z.string().email('Invalid email address'),
 })
@@ -53,8 +54,17 @@ export async function POST(request: Request) {
 
     // ── Get item price and title ───────────────────────────────────────────────
     let price = 0
-    let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
-    if (itemType === 'course') {
+    let itemTitle = 'Topic'
+    let accessDays = 15
+
+    if (itemType === 'topic') {
+      const topic = await Topic.findById(itemId)
+      if (!topic) return apiError('Topic not found', 404)
+      if (!topic.isPublished) return apiError('Topic is not available', 403)
+      price = topic.price ?? 200
+      itemTitle = topic.title || 'Topic'
+      accessDays = topic.accessDays ?? 15
+    } else if (itemType === 'course') {
       const course = await Course.findById(itemId)
       if (!course)           return apiError('Course not found', 404)
       if (!course.isPublished) return apiError('Course is not available', 403)
@@ -66,13 +76,15 @@ export async function POST(request: Request) {
       if (!chapter.isPublished) return apiError('Chapter is not available', 403)
       price = chapter.price
       itemTitle = chapter.title || 'Unit'
+      accessDays = chapter.accessDays ?? 15
     }
     if (price <= 0) return apiError('Invalid price', 400)
 
     // ── Clean up old pending payments ─────────────────────────────────────────
     const oldQ: any = { userId, method: 'easypaisa', status: 'pending' }
     if (itemType === 'course') oldQ.courseId = itemId
-    else oldQ.chapterId = itemId
+    else if (itemType === 'chapter') oldQ.chapterId = itemId
+    else oldQ.topicId = itemId
     await Payment.deleteMany(oldQ)
 
     // ── Generate order ID ──────────────────────────────────────────────────────
@@ -89,15 +101,16 @@ export async function POST(request: Request) {
       easypaisaRef:  orderId,
     }
     if (itemType === 'course') paymentData.courseId = itemId
-    else paymentData.chapterId = itemId
+    else if (itemType === 'chapter') paymentData.chapterId = itemId
+    else paymentData.topicId = itemId
     await Payment.create(paymentData)
 
     // ── Call Easypaisa Initiate MA Transaction API ─────────────────────────────
     const requestBody = {
       orderId,
-      storeId:         EP_STORE_ID,
-      transactionAmount: price.toFixed(1),
-      transactionType: 'MA',
+      storeId:           EP_STORE_ID,
+      transactionAmount: price,   // send as number, not string
+      transactionType:   'MA',
       mobileAccountNo,
       emailAddress,
     }
@@ -156,12 +169,10 @@ export async function POST(request: Request) {
       }
     )
 
-    // Calculate expiry based on chapter accessDays
+    // Calculate expiry based on accessDays
     let expiresAt: Date | null = null
-    if (itemType === 'chapter') {
-      const chapter = await Chapter.findById(itemId).select('accessDays').lean()
-      const days = (chapter as any)?.accessDays ?? 15
-      expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+    if (itemType === 'chapter' || itemType === 'topic') {
+      expiresAt = new Date(Date.now() + accessDays * 24 * 60 * 60 * 1000)
     }
 
     // Create approved Purchase immediately so student gets instant access
@@ -169,7 +180,8 @@ export async function POST(request: Request) {
     if (payment) {
       const pd: any = { userId, paymentId: payment._id, status: 'approved' }
       if (itemType === 'course') pd.courseId = itemId
-      else { pd.chapterId = itemId; if (expiresAt) pd.expiresAt = expiresAt }
+      else if (itemType === 'chapter') { pd.chapterId = itemId; if (expiresAt) pd.expiresAt = expiresAt }
+      else { pd.topicId = itemId; if (expiresAt) pd.expiresAt = expiresAt }
 
       const existingPurchase = await Purchase.findOne({ paymentId: payment._id })
       if (!existingPurchase) {
@@ -179,29 +191,29 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── Send confirmation emails:
-    // 1. To student: course unlocked confirmation
-    // 2. To admin: notification that someone bought the course
-    try {
-      let userName: string | undefined = undefined
+    // ── Send confirmation emails in background so it never blocks or causes "failed to fetch"
+    ;(async () => {
       try {
-        const { clerkClient } = await import('@clerk/nextjs/server')
-        const client = await clerkClient()
-        const clerkUser = await client.users.getUser(userId)
-        userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined
-      } catch {}
+        let userName: string | undefined = undefined
+        try {
+          const { clerkClient } = await import('@clerk/nextjs/server')
+          const client = await clerkClient()
+          const clerkUser = await client.users.getUser(userId)
+          userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined
+        } catch {}
 
-      await sendCourseUnlockedEmail({
-        to: emailAddress,
-        userName,
-        itemTitle,
-        price,
-        itemType,
-        expiresAt,
-      })
-    } catch (e) {
-      console.error('[Easypaisa MA] Send course unlocked email error:', e)
-    }
+        await sendCourseUnlockedEmail({
+          to: emailAddress,
+          userName,
+          itemTitle,
+          price,
+          itemType: itemType === 'course' ? 'course' : 'chapter',
+          expiresAt,
+        })
+      } catch (e) {
+        console.error('[Easypaisa MA] Send course unlocked email error:', e)
+      }
+    })()
 
     return Response.json({
       success:       true,

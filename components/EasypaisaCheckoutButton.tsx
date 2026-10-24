@@ -7,7 +7,7 @@ import Image from 'next/image'
 
 interface Props {
   itemId:   string
-  itemType: 'course' | 'chapter'
+  itemType: 'course' | 'chapter' | 'topic'
   price:    number
   easypaisaNumber: string
   userEmail?: string

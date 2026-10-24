@@ -4,7 +4,8 @@ import type { PaymentStatus } from '@/lib/types'
 export interface IPurchaseDocument extends Document {
   userId: string // clerkId
   courseId?: mongoose.Types.ObjectId
-  chapterId?: mongoose.Types.ObjectId  // this is the Unit (Chapter) id
+  chapterId?: mongoose.Types.ObjectId  // Unit (Chapter) id
+  topicId?: mongoose.Types.ObjectId    // Topic-level purchase
   paymentId: mongoose.Types.ObjectId
   status: PaymentStatus
   expiresAt?: Date  // set when approved — createdAt + accessDays
@@ -22,6 +23,10 @@ const PurchaseSchema = new Schema<IPurchaseDocument>(
     chapterId: {
       type: Schema.Types.ObjectId,
       ref: 'Chapter',
+    },
+    topicId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Topic',
     },
     paymentId: {
       type: Schema.Types.ObjectId,

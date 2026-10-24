@@ -23,8 +23,12 @@ export default function AdminAddTopicForm({
   const [form, setForm] = useState({
     title: '',
     description: '',
-    isPublished: false,
+    isPublished: true,
   })
+  const [price, setPrice]             = useState('200')
+  const [accessDays, setAccessDays]   = useState('15')
+  const [isFree, setIsFree]           = useState(false)
+  const [directVideoUrl, setDirectVideoUrl] = useState('')
   const [videoUrl, setVideoUrl]       = useState('')
   const [publicId, setPublicId]       = useState('')
   const [duration, setDuration]       = useState('')
@@ -110,6 +114,8 @@ export default function AdminAddTopicForm({
     if (existingCount >= MAX_TOPICS) { setError('Maximum 30 topics per unit reached.'); return }
     setError(''); setSuccess(false); setLoading(true)
 
+    const finalVideo = videoUrl || directVideoUrl.trim()
+
     try {
       const res = await fetch('/api/topics', {
         method: 'POST',
@@ -119,20 +125,23 @@ export default function AdminAddTopicForm({
           courseId,
           title: form.title,
           description: form.description,
-          videoUrl,
+          videoUrl: finalVideo,
           ...(publicId ? { cloudinaryPublicId: publicId } : {}),
-          ...(videoUrl ? { videoProvider: 'cloudinary' } : {}),
+          videoProvider: publicId || finalVideo.includes('cloudinary') ? 'cloudinary' : 'external',
           duration: (parseInt(duration) || 0) * 60,
           order: nextOrder,
           isPublished: form.isPublished,
+          price: isFree ? 0 : (Number(price) || 200),
+          isFree,
+          accessDays: Number(accessDays) || 15,
         }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed to create topic'); return }
 
       setSuccess(true)
-      setForm({ title: '', description: '', isPublished: false })
-      setVideoUrl(''); setPublicId(''); setDuration('')
+      setForm({ title: '', description: '', isPublished: true })
+      setVideoUrl(''); setPublicId(''); setDuration(''); setDirectVideoUrl('')
 
       setTimeout(() => {
         router.refresh()
@@ -197,42 +206,96 @@ export default function AdminAddTopicForm({
               />
             </div>
 
-            {/* Publish */}
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative flex items-center justify-center">
+            {/* Pricing & Access Duration */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">
+                  Price (PKR)
+                </label>
+                <input
+                  type="number"
+                  placeholder="200"
+                  disabled={isFree}
+                  className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-sm disabled:opacity-40"
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
+                  min={0}
+                />
+              </div>
+              <div>
+                <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">
+                  Access (Days)
+                </label>
+                <input
+                  type="number"
+                  placeholder="15"
+                  className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-sm"
+                  value={accessDays}
+                  onChange={e => setAccessDays(e.target.value)}
+                  min={1}
+                  max={365}
+                />
+              </div>
+            </div>
+
+            {/* Checkboxes: Free Topic + Publish */}
+            <div className="flex flex-col gap-2 pt-1">
+              <label className="flex items-center gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={isFree}
+                  onChange={e => setIsFree(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#27187e] cursor-pointer"
+                />
+                <span className="font-semibold text-xs text-[#4A5043] group-hover:text-[#27187e] transition-colors">
+                  🎁 Free Topic (Students can watch without paying)
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={form.isPublished}
                   onChange={e => setForm({ ...form, isPublished: e.target.checked })}
-                  className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:bg-[#27187e] checked:border-[#27187e] transition-colors cursor-pointer"
+                  className="w-4 h-4 rounded text-[#27187e] cursor-pointer"
                 />
-                <CheckCircle size={13} className={`absolute text-white pointer-events-none transition-opacity ${form.isPublished ? 'opacity-100' : 'opacity-0'}`} />
-              </div>
-              <span className="font-semibold text-sm text-[#4A5043] group-hover:text-[#27187e] transition-colors">Publish immediately</span>
-            </label>
+                <span className="font-semibold text-xs text-[#4A5043] group-hover:text-[#27187e] transition-colors">
+                  🌐 Publish immediately
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* Video Upload */}
+            {/* Video Upload or Direct Link */}
             <div>
-              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Video *</label>
-              <div className="bg-[#f7f7ff] border-2 border-dashed border-[#27187e]/20 rounded-xl flex flex-col items-center justify-center p-6 text-center relative overflow-hidden hover:border-[#27187e]/40 transition-colors h-[160px]">
+              <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">Topic Video</label>
+              
+              {/* Direct Link Input */}
+              <input
+                type="text"
+                placeholder="Or paste video URL (Cloudinary / MP4 link)"
+                className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-xs mb-2"
+                value={directVideoUrl}
+                onChange={e => setDirectVideoUrl(e.target.value)}
+              />
+
+              <div className="bg-[#f7f7ff] border-2 border-dashed border-[#27187e]/20 rounded-xl flex flex-col items-center justify-center p-4 text-center relative overflow-hidden hover:border-[#27187e]/40 transition-colors h-[120px]">
                 {videoUrl ? (
-                  <div className="flex flex-col items-center gap-2 text-emerald-600">
-                    <CheckCircle size={36} />
-                    <span className="font-bold text-sm">Video Ready!</span>
+                  <div className="flex flex-col items-center gap-1.5 text-emerald-600">
+                    <CheckCircle size={28} />
+                    <span className="font-bold text-xs">Video Uploaded!</span>
                     <button type="button" onClick={() => { setVideoUrl(''); setPublicId(''); setDuration('') }}
-                      className="text-xs text-red-500 underline">Replace video</button>
+                      className="text-[11px] text-red-500 underline">Replace</button>
                   </div>
                 ) : (
                   <>
-                    <Video size={28} className="text-gray-300 mb-3" />
-                    <p className="text-gray-400 text-xs mb-3">MP4 · MOV · up to 2 hours</p>
+                    <Video size={24} className="text-gray-300 mb-1.5" />
                     <input type="file" accept="video/*" id="newTopicVideo" className="hidden"
                       onChange={handleVideoUpload} disabled={uploading} />
                     <label htmlFor="newTopicVideo"
-                      className="bg-[#3a86ff] text-white px-4 py-2 rounded-xl font-bold cursor-pointer hover:scale-105 transition-transform flex items-center gap-2 text-sm">
-                      {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Video</>}
+                      className="bg-[#3a86ff] text-white px-3.5 py-1.5 rounded-lg font-bold cursor-pointer hover:scale-105 transition-transform flex items-center gap-1.5 text-xs">
+                      {uploading ? <><Loader2 size={12} className="animate-spin" /> Uploading...</> : <><Upload size={12} /> Upload File</>}
                     </label>
                   </>
                 )}

@@ -19,6 +19,8 @@ async function getAdminPayments(userId: string, superAdmin: boolean) {
   if (superAdmin) {
     return Payment.find()
       .populate('chapterId', 'title price')
+      .populate('topicId', 'title price')
+      .populate('courseId', 'title price')
       .sort({ createdAt: -1 })
       .lean()
   }
@@ -29,8 +31,15 @@ async function getAdminPayments(userId: string, superAdmin: boolean) {
   const myChapters = await Chapter.find({ courseId: { $in: myCourseIds } }).select('_id').lean()
   const myChapterIds = myChapters.map((c) => c._id)
 
-  return Payment.find({ chapterId: { $in: myChapterIds } })
+  return Payment.find({
+    $or: [
+      { chapterId: { $in: myChapterIds } },
+      { courseId: { $in: myCourseIds } },
+    ],
+  })
     .populate('chapterId', 'title price')
+    .populate('topicId', 'title price')
+    .populate('courseId', 'title price')
     .sort({ createdAt: -1 })
     .lean()
 }
@@ -74,7 +83,7 @@ export default async function AdminPaymentsPage() {
           <table>
             <thead>
               <tr>
-                <th>Chapter</th>
+                <th>Item</th>
                 <th>User ID</th>
                 <th>Method</th>
                 <th>Amount</th>
@@ -88,10 +97,16 @@ export default async function AdminPaymentsPage() {
             <tbody>
               {/* */}
               {payments.map((pay: any) => {
-                const ch = pay.chapterId
+                const itemTitle = typeof pay.topicId === 'object' && pay.topicId
+                  ? `🎬 ${pay.topicId?.title}`
+                  : typeof pay.chapterId === 'object' && pay.chapterId
+                  ? `📖 ${pay.chapterId?.title}`
+                  : typeof pay.courseId === 'object' && pay.courseId
+                  ? `📚 ${pay.courseId?.title}`
+                  : '—'
                 return (
                   <tr key={pay._id.toString()}>
-                    <td style={{ fontWeight: 500, maxWidth: 160 }}>{typeof ch === 'object' ? ch?.title : ch}</td>
+                    <td style={{ fontWeight: 500, maxWidth: 160 }}>{itemTitle}</td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {pay.userId?.slice(0, 16)}…
                     </td>

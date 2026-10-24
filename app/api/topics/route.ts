@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { unitId, courseId, title, description, videoUrl, cloudinaryPublicId, videoProvider, duration, order, isPublished } = body
+    const { unitId, courseId, title, description, videoUrl, cloudinaryPublicId, videoProvider, duration, order, isPublished, price, isFree, accessDays } = body
 
     if (!unitId || !courseId || !title) {
       return NextResponse.json({ error: 'unitId, courseId and title are required' }, { status: 400 })
@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
       duration: duration ?? 0,
       order: topicOrder,
       isPublished: isPublished ?? false,
+      price: price !== undefined ? Number(price) : 200,
+      isFree: isFree ?? false,
+      accessDays: accessDays !== undefined ? Number(accessDays) : 15,
     })
 
     // Auto-publish parent Unit and Course if this Topic is published

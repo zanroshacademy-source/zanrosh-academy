@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Chapter from '@/models/Chapter'
 import Course from '@/models/Course'
+import Topic from '@/models/Topic'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { sendPaymentRequestEmail } from '@/lib/mailer'
 
@@ -17,19 +18,24 @@ export async function POST(request: Request) {
     const formData   = await request.formData()
     const file       = formData.get('screenshot') as File | null
     const itemId     = formData.get('itemId') as string
-    const itemType   = formData.get('itemType') as 'course' | 'chapter'
+    const itemType   = formData.get('itemType') as 'course' | 'chapter' | 'topic'
     const txId       = (formData.get('transactionId') as string) || ''
     const methodName = 'easypaisa'
 
     if (!file || !itemId || !itemType) return apiError('Missing required fields', 422)
-    if (!['course', 'chapter'].includes(itemType)) return apiError('Invalid itemType', 422)
+    if (!['course', 'chapter', 'topic'].includes(itemType)) return apiError('Invalid itemType', 422)
 
     await connectDB()
 
     // Get item price and title
     let price = 0
-    let itemTitle = itemType === 'course' ? 'Course' : 'Unit'
-    if (itemType === 'course') {
+    let itemTitle = 'Topic'
+    if (itemType === 'topic') {
+      const topic = await Topic.findById(itemId)
+      if (!topic || !topic.isPublished) return apiError('Topic not found', 404)
+      price = topic.price ?? 200
+      itemTitle = topic.title || 'Topic'
+    } else if (itemType === 'course') {
       const course = await Course.findById(itemId)
       if (!course || !course.isPublished) return apiError('Course not found', 404)
       price = course.price
@@ -65,7 +71,8 @@ export async function POST(request: Request) {
     // Clean up old pending screenshot payments for this user+item
     const oldQ: any = { userId, method: methodName, status: 'pending' }
     if (itemType === 'course') oldQ.courseId = itemId
-    else oldQ.chapterId = itemId
+    else if (itemType === 'chapter') oldQ.chapterId = itemId
+    else oldQ.topicId = itemId
     await Payment.deleteMany(oldQ)
 
     // Create pending payment with screenshot
@@ -78,7 +85,8 @@ export async function POST(request: Request) {
       status:        'pending',
     }
     if (itemType === 'course') payData.courseId = itemId
-    else payData.chapterId = itemId
+    else if (itemType === 'chapter') payData.chapterId = itemId
+    else payData.topicId = itemId
     await Payment.create(payData)
 
     // Notify zanroshacademy@gmail.com and student

@@ -22,10 +22,10 @@ export const ADMIN_EMAIL = 'zanroshacademy@gmail.com'
 export interface CourseUnlockedEmailData {
   to: string              // student's email (dynamic — each student gets their own)
   userName?: string       // optional first name
-  itemTitle: string       // unit/course title
+  itemTitle: string       // topic/unit/course title
   price: number           // amount paid in PKR
-  itemType: 'course' | 'chapter'
-  expiresAt?: Date | null // for units: expiry date
+  itemType: 'course' | 'chapter' | 'topic'
+  expiresAt?: Date | null // for units/topics: expiry date
 }
 
 /**
@@ -43,7 +43,7 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
   }
 
   const greeting = userName ? `Hi ${userName}` : 'Hello'
-  const typeLabel = itemType === 'course' ? 'course' : 'unit'
+  const typeLabel = itemType === 'course' ? 'course' : itemType === 'topic' ? 'topic' : 'unit'
   const expiryLine = expiresAt
     ? `<p style="color:#4A5043;font-size:14px;margin:8px 0 0;">
         📅 <strong>Access expires on:</strong>
@@ -197,7 +197,7 @@ export interface PaymentRequestEmailData {
   userEmail?: string
   itemTitle: string
   price: number
-  itemType: 'course' | 'chapter'
+  itemType: 'course' | 'chapter' | 'topic'
   method: string
   transactionId?: string
   screenshotUrl?: string
@@ -216,7 +216,7 @@ export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
     return
   }
 
-  const typeLabel = itemType === 'course' ? 'course' : 'unit'
+  const typeLabel = itemType === 'course' ? 'course' : itemType === 'topic' ? 'topic' : 'unit'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zanroshacademy.com'
 
   // 1. Send alert to zanroshacademy@gmail.com

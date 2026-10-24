@@ -20,6 +20,9 @@ interface Topic {
   duration?: number
   order: number
   isPublished: boolean
+  price?: number
+  isFree?: boolean
+  accessDays?: number
 }
 
 interface Unit {
@@ -185,6 +188,15 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">
                                   <p className="font-bold text-[#27187e] text-sm truncate">{topic.title}</p>
+                                  {topic.isFree ? (
+                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase">
+                                      Free
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                      PKR {topic.price ?? 200}
+                                    </span>
+                                  )}
                                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                                     topic.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                                   }`}>
@@ -270,11 +282,14 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
 
 // ── Inline topic edit form ─────────────────────────────────────────────────
 function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void }) {
-  const [title, setTitle]           = useState(topic.title)
+  const [title, setTitle]             = useState(topic.title)
   const [description, setDescription] = useState(topic.description ?? '')
+  const [price, setPrice]             = useState(String(topic.price ?? 200))
+  const [accessDays, setAccessDays]   = useState(String(topic.accessDays ?? 15))
+  const [isFree, setIsFree]           = useState(topic.isFree ?? false)
   const [isPublished, setIsPublished] = useState(topic.isPublished)
-  const [loading, setLoading]       = useState(false)
-  const [error, setError]           = useState('')
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState('')
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -283,7 +298,14 @@ function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void
       const res = await fetch(`/api/topics/${topic._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, isPublished }),
+        body: JSON.stringify({
+          title,
+          description,
+          price: isFree ? 0 : Number(price) || 200,
+          accessDays: Number(accessDays) || 15,
+          isFree,
+          isPublished,
+        }),
       })
       if (!res.ok) throw new Error('Failed to update')
       onClose()
@@ -297,13 +319,44 @@ function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void
       <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
         className="w-full bg-[#f7f7ff] border border-[#27187e]/10 focus:border-[#27187e]/40 rounded-xl px-3 py-2 outline-none text-[#27187e] font-bold text-sm" />
       <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)}
+        placeholder="Topic description..."
         className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-2 outline-none text-[#4A5043] text-sm resize-none" />
-      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#4A5043]">
-        <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-[#27187e]" />
-        Published
-      </label>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-[11px] font-bold text-[#27187e] mb-1">Price (PKR)</label>
+          <input
+            type="number"
+            disabled={isFree}
+            value={price}
+            onChange={e => setPrice(e.target.value)}
+            className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#27187e] font-bold disabled:opacity-40"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-bold text-[#27187e] mb-1">Access (Days)</label>
+          <input
+            type="number"
+            value={accessDays}
+            onChange={e => setAccessDays(e.target.value)}
+            className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#27187e] font-bold"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 text-xs font-semibold text-[#4A5043]">
+        <label className="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="accent-[#27187e]" />
+          Free Topic
+        </label>
+        <label className="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-[#27187e]" />
+          Published
+        </label>
+      </div>
+
       {error && <p className="text-red-500 text-xs">{error}</p>}
-      <div className="flex gap-2">
+      <div className="flex gap-2 pt-1">
         <button type="submit" disabled={loading}
           className="bg-[#27187e] text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:scale-105 transition-all disabled:opacity-50">
           {loading ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}

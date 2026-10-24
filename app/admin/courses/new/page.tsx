@@ -17,7 +17,7 @@ export default function NewCoursePage() {
     category: 'Physics',
     level: '9th Class',
     isFree: false,
-    isPublished: false,
+    isPublished: true,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

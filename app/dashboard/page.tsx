@@ -2,6 +2,8 @@ import { connectDB } from '@/lib/db'
 import Purchase from '@/models/Purchase'
 import Payment from '@/models/Payment'
 import Chapter from '@/models/Chapter'
+import Topic from '@/models/Topic'
+import Course from '@/models/Course'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
@@ -28,7 +30,11 @@ async function getDashboardData(userId: string) {
       const existingPurchase = await Purchase.findOne({ paymentId: p._id })
       if (!existingPurchase) {
         let expiresAt: Date | null = null
-        if (p.chapterId) {
+        if (p.topicId) {
+          const topic = await Topic.findById(p.topicId).select('accessDays').lean()
+          const days = (topic as any)?.accessDays ?? 15
+          expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        } else if (p.chapterId) {
           const chapter = await Chapter.findById(p.chapterId).select('accessDays').lean()
           const days = (chapter as any)?.accessDays ?? 15
           expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
@@ -36,6 +42,7 @@ async function getDashboardData(userId: string) {
         const pd: any = { userId, paymentId: p._id, status: 'approved' }
         if (p.courseId) pd.courseId = p.courseId
         if (p.chapterId) { pd.chapterId = p.chapterId; if (expiresAt) pd.expiresAt = expiresAt }
+        if (p.topicId) { pd.topicId = p.topicId; if (expiresAt) pd.expiresAt = expiresAt }
         await Purchase.create(pd)
       } else {
         await Purchase.updateOne({ _id: existingPurchase._id }, { $set: { status: 'approved' } })
@@ -49,11 +56,13 @@ async function getDashboardData(userId: string) {
     Purchase.find({ userId })
       .populate({ path: 'chapterId', select: 'title price courseId', strictPopulate: false })
       .populate({ path: 'courseId', select: 'title price', strictPopulate: false })
+      .populate({ path: 'topicId', select: 'title price unitId courseId', strictPopulate: false })
       .sort({ createdAt: -1 })
       .lean(),
     Payment.find({ userId })
       .populate({ path: 'chapterId', select: 'title price', strictPopulate: false })
       .populate({ path: 'courseId', select: 'title price', strictPopulate: false })
+      .populate({ path: 'topicId', select: 'title price', strictPopulate: false })
       .sort({ createdAt: -1 })
       .lean(),
   ])
@@ -99,7 +108,7 @@ export default async function StudentDashboardPage() {
 
         <section className="mb-10">
           <h2 className="text-2xl font-black text-[#27187e] mb-6 flex items-center gap-2">
-            🎓 My Chapters
+            🎓 My Content & Topics
           </h2>
           {approved.length === 0 ? (
             <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center text-[#4A5043]/60 font-medium flex flex-col items-center">
@@ -112,10 +121,12 @@ export default async function StudentDashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {approved.map((p: any) => {
+                const isTopic   = !!p.topicId   && typeof p.topicId   === 'object'
                 const isCourse  = !!p.courseId  && typeof p.courseId  === 'object'
-                const item      = isCourse ? p.courseId : p.chapterId
-                const watchHref = isCourse ? `/courses/${item?._id}` : `/watch/${item?._id}`
-                const watchLabel = isCourse ? 'View Course' : 'Watch Chapter'
+                const item      = isTopic ? p.topicId : isCourse ? p.courseId : p.chapterId
+                const watchHref = isTopic ? `/watch/topic/${item?._id}` : isCourse ? `/courses/${item?._id}` : `/courses/${item?.courseId || item?._id}`
+                const watchLabel = isTopic ? 'Watch Topic' : isCourse ? 'View Course' : 'View Unit'
+                const tagLabel   = isTopic ? '🎬 Topic' : isCourse ? '📚 Full Course' : '📖 Unit'
                 if (!item) return null
                 return (
                   <div key={p._id.toString()} className="bg-white rounded-[2rem] p-6 border border-[#27187e]/10 shadow-[0_8px_30px_rgba(39,24,126,0.06)] hover:shadow-[0_20px_40px_rgba(39,24,126,0.12)] hover:-translate-y-2 transition-all duration-300 flex flex-col relative overflow-hidden group">
@@ -124,7 +135,7 @@ export default async function StudentDashboardPage() {
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="bg-[#27187e]/10 text-[#27187e] px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-                          {isCourse ? '📚 Full Course' : '📖 Chapter'}
+                          {tagLabel}
                         </span>
                         <span className="flex items-center gap-1.5 text-xs font-black text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
                           <CheckCircle size={14} /> Unlocked
@@ -158,7 +169,9 @@ export default async function StudentDashboardPage() {
                 <thead><tr><th>Item</th><th>Method</th><th>Amount</th><th>Transaction ID</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>
                   {payments.map((pay: any) => {
-                    const itemTitle = typeof pay.courseId === 'object' && pay.courseId
+                    const itemTitle = typeof pay.topicId === 'object' && pay.topicId
+                      ? `🎬 ${pay.topicId?.title}`
+                      : typeof pay.courseId === 'object' && pay.courseId
                       ? `📚 ${pay.courseId?.title}`
                       : typeof pay.chapterId === 'object' && pay.chapterId
                       ? `📖 ${pay.chapterId?.title}`

@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     await connectDB()
 
-    const allowed = ['title', 'description', 'videoUrl', 'cloudinaryPublicId', 'videoProvider', 'duration', 'order', 'isPublished']
+    const allowed = ['title', 'description', 'videoUrl', 'cloudinaryPublicId', 'videoProvider', 'duration', 'order', 'isPublished', 'price', 'isFree', 'accessDays']
     const update: Record<string, unknown> = {}
     for (const key of allowed) {
       if (key in body) update[key] = body[key]
