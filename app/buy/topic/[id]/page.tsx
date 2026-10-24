@@ -68,8 +68,8 @@ export default async function BuyTopicPage({
   }
 
   const hasAccess = existing && existing.status === 'approved' && !isExpired
-  const accessDays = topic.accessDays ?? 15
-  const price = topic.price ?? 200
+  const accessDays = topic.accessDays || unit?.accessDays || 15
+  const price = (topic.price !== undefined && topic.price !== null && topic.price > 0) ? topic.price : (unit?.price || 0)
 
   return (
     <div className="min-h-screen bg-[#f7f7ff] pb-20">

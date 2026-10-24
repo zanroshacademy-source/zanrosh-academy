@@ -43,9 +43,14 @@ export async function PATCH(
     let expiresAt: Date | null = null
     if (status === 'approved') {
       if (payment.topicId) {
-        // Topic-level purchase — use topic's accessDays
-        const topic = await Topic.findById(payment.topicId).select('accessDays').lean()
-        const days = (topic as any)?.accessDays ?? 15
+        // Topic-level purchase — use topic's accessDays or unit's accessDays
+        const topic = await Topic.findById(payment.topicId).select('accessDays unitId').lean()
+        let days = (topic as any)?.accessDays
+        if (!days && (topic as any)?.unitId) {
+          const unit = await Chapter.findById((topic as any).unitId).select('accessDays').lean()
+          days = (unit as any)?.accessDays
+        }
+        days = days || 15
         expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
       } else if (payment.chapterId) {
         // Unit-level purchase — use chapter's accessDays
@@ -85,7 +90,7 @@ export async function PATCH(
         const userName = clerkUser.firstName ?? undefined
 
         let itemTitle = 'Your purchase'
-        const itemType: 'course' | 'chapter' = payment.chapterId ? 'chapter' : 'course'
+        const itemType: 'course' | 'chapter' | 'topic' = (payment as any).topicId ? 'topic' : payment.chapterId ? 'chapter' : 'course'
         if ((payment as any).topicId) {
           const tp = await Topic.findById((payment as any).topicId).select('title').lean()
           itemTitle = (tp as any)?.title ?? 'Topic'

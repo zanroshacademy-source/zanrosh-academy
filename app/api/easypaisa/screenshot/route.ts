@@ -33,7 +33,8 @@ export async function POST(request: Request) {
     if (itemType === 'topic') {
       const topic = await Topic.findById(itemId)
       if (!topic || !topic.isPublished) return apiError('Topic not found', 404)
-      price = topic.price ?? 200
+      const unit = await Chapter.findById(topic.unitId)
+      price = (topic.price !== undefined && topic.price !== null && topic.price > 0) ? topic.price : (unit?.price || 0)
       itemTitle = topic.title || 'Topic'
     } else if (itemType === 'course') {
       const course = await Course.findById(itemId)

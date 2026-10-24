@@ -41,7 +41,7 @@ const TopicSchema = new Schema<ITopicDocument>(
     order:              { type: Number, required: true, default: 1 },
     isPublished:        { type: Boolean, default: false },
     isFree:             { type: Boolean, default: false },
-    price:              { type: Number, default: 200 },
+    price:              { type: Number, default: 0 },
     accessDays:         { type: Number, default: 15, min: 1, max: 365 },
   },
   { timestamps: true }

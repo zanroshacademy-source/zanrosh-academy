@@ -61,9 +61,10 @@ export async function POST(request: Request) {
       const topic = await Topic.findById(itemId)
       if (!topic) return apiError('Topic not found', 404)
       if (!topic.isPublished) return apiError('Topic is not available', 403)
-      price = topic.price ?? 200
+      const unit = await Chapter.findById(topic.unitId)
+      price = (topic.price !== undefined && topic.price !== null && topic.price > 0) ? topic.price : (unit?.price || 0)
       itemTitle = topic.title || 'Topic'
-      accessDays = topic.accessDays ?? 15
+      accessDays = topic.accessDays || unit?.accessDays || 15
     } else if (itemType === 'course') {
       const course = await Course.findById(itemId)
       if (!course)           return apiError('Course not found', 404)

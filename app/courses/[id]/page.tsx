@@ -28,18 +28,35 @@ async function getCourseData(id: string, userId: string | null) {
   if (!mongoose.Types.ObjectId.isValid(id)) return null
 
   await connectDB()
-  const course = await Course.findById(id).lean()
-  if (!course || !course.isPublished) return null
+  let course = await Course.findById(id).lean()
 
-  const units = await Chapter.find({ courseId: id, isPublished: true }).sort({ order: 1 }).lean()
+  // If id is a Chapter ID, resolve to its parent Course
+  if (!course) {
+    const ch = await Chapter.findById(id).select('courseId').lean()
+    if (ch?.courseId) {
+      course = await Course.findById(ch.courseId).lean()
+    }
+  }
 
-  // Load all topics for every unit in one query
+  // If id is a Topic ID, resolve to its parent Course
+  if (!course) {
+    const tp = await Topic.findById(id).select('courseId').lean()
+    if (tp?.courseId) {
+      course = await Course.findById(tp.courseId).lean()
+    }
+  }
+
+  if (!course) return null
+
+  // Load units for this course
+  const units = await Chapter.find({ courseId: course._id }).sort({ order: 1 }).lean()
+
+  // Load all topics for every unit in one query (using real admin data from DB)
   const allTopics = await Topic.find({
     unitId: { $in: units.map(u => u._id) },
-    isPublished: true,
   })
     .sort({ order: 1 })
-    .select('_id title description duration order unitId price isFree accessDays')
+    .select('_id title description duration order unitId price isFree accessDays isPublished')
     .lean()
 
   const topicsByUnit = new Map<string, typeof allTopics>()
@@ -280,14 +297,18 @@ function UnitSection({
               const topicExp = topicExpStr ? new Date(topicExpStr) : null
               const isTopicExpired = topicExp ? topicExp < new Date() : false
 
+              const topicPrice = topic.price !== undefined && topic.price !== null && topic.price > 0
+                ? topic.price
+                : (unit.price || 0)
+              const topicAccessDays = topic.accessDays || unit.accessDays || 15
+
               const isUnlocked =
                 unit.isFree ||
                 topic.isFree ||
+                topicPrice === 0 ||
                 isFullCoursePurchased ||
                 isUnitPurchased ||
                 (hasDirectPurchase && !isTopicExpired)
-
-              const topicPrice = topic.price ?? 200
 
               return (
                 <div
@@ -310,22 +331,27 @@ function UnitSection({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-[#27187e] text-sm truncate">{topic.title}</span>
-                        {topic.isFree && (
+                        {(topic.isFree || topicPrice === 0) && (
                           <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
                             Free
                           </span>
                         )}
-                        {isUnlocked && !topic.isFree && !unit.isFree && (
+                        {isUnlocked && !topic.isFree && !unit.isFree && topicPrice > 0 && (
                           <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
                             <CheckCircle size={10} /> Unlocked
                           </span>
                         )}
                       </div>
-                      {topic.duration > 0 && (
-                        <span className="text-[#4A5043]/50 text-xs font-medium flex items-center gap-1 mt-0.5">
-                          <Clock size={11} /> {formatDuration(topic.duration)}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-3 text-[#4A5043]/50 text-xs font-medium mt-0.5">
+                        {topic.duration > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Clock size={11} /> {formatDuration(topic.duration)}
+                          </span>
+                        )}
+                        {!isUnlocked && (
+                          <span>· {topicAccessDays} Days Access</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

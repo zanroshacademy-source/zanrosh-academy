@@ -25,7 +25,7 @@ export default function AdminAddTopicForm({
     description: '',
     isPublished: true,
   })
-  const [price, setPrice]             = useState('200')
+  const [price, setPrice]             = useState('')
   const [accessDays, setAccessDays]   = useState('15')
   const [isFree, setIsFree]           = useState(false)
   const [directVideoUrl, setDirectVideoUrl] = useState('')
@@ -131,9 +131,9 @@ export default function AdminAddTopicForm({
           duration: (parseInt(duration) || 0) * 60,
           order: nextOrder,
           isPublished: form.isPublished,
-          price: isFree ? 0 : (Number(price) || 200),
+          price: isFree ? 0 : (price === '' ? 0 : Number(price)),
           isFree,
-          accessDays: Number(accessDays) || 15,
+          accessDays: accessDays === '' ? 15 : Number(accessDays),
         }),
       })
       const data = await res.json()
@@ -214,7 +214,7 @@ export default function AdminAddTopicForm({
                 </label>
                 <input
                   type="number"
-                  placeholder="200"
+                  placeholder="e.g. 150"
                   disabled={isFree}
                   className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-sm disabled:opacity-40"
                   value={price}

@@ -31,7 +31,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const allowed = ['title', 'description', 'videoUrl', 'cloudinaryPublicId', 'videoProvider', 'duration', 'order', 'isPublished', 'price', 'isFree', 'accessDays']
     const update: Record<string, unknown> = {}
     for (const key of allowed) {
-      if (key in body) update[key] = body[key]
+      if (key in body) {
+        if (key === 'price') update[key] = body.isFree ? 0 : Number(body[key])
+        else if (key === 'accessDays') update[key] = Number(body[key])
+        else if (key === 'duration') update[key] = Number(body[key])
+        else update[key] = body[key]
+      }
     }
 
     const topic = await Topic.findByIdAndUpdate(id, { $set: update }, { new: true })

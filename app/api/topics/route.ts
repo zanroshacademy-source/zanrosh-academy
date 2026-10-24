@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
       duration: duration ?? 0,
       order: topicOrder,
       isPublished: isPublished ?? false,
-      price: price !== undefined ? Number(price) : 200,
+      price: isFree ? 0 : (price !== undefined && price !== null && price !== '' ? Number(price) : (unit?.price ? Number(unit.price) : 0)),
       isFree: isFree ?? false,
-      accessDays: accessDays !== undefined ? Number(accessDays) : 15,
+      accessDays: accessDays !== undefined && accessDays !== null && accessDays !== '' ? Number(accessDays) : (unit?.accessDays ? Number(unit.accessDays) : 15),
     })
 
     // Auto-publish parent Unit and Course if this Topic is published

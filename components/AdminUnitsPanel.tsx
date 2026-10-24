@@ -194,7 +194,7 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
                                     </span>
                                   ) : (
                                     <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                                      PKR {topic.price ?? 200}
+                                      PKR {(topic.price !== undefined && topic.price !== null) ? topic.price : (unit.price ?? 0)}
                                     </span>
                                   )}
                                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
@@ -218,6 +218,9 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
                                       <Clock size={11} />{formatDuration(topic.duration)}
                                     </span>
                                   )}
+                                  <span className="flex items-center gap-1">
+                                    <Clock size={11} />{topic.accessDays ?? unit.accessDays ?? 15}d access
+                                  </span>
                                 </div>
                               </div>
 
@@ -284,8 +287,10 @@ export default function AdminUnitsPanel({ units, courseId }: Props) {
 function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void }) {
   const [title, setTitle]             = useState(topic.title)
   const [description, setDescription] = useState(topic.description ?? '')
-  const [price, setPrice]             = useState(String(topic.price ?? 200))
-  const [accessDays, setAccessDays]   = useState(String(topic.accessDays ?? 15))
+  const [price, setPrice]             = useState(topic.price !== undefined && topic.price !== null ? String(topic.price) : '')
+  const [accessDays, setAccessDays]   = useState(topic.accessDays !== undefined && topic.accessDays !== null ? String(topic.accessDays) : '15')
+  const [durationMinutes, setDurationMinutes] = useState(topic.duration ? String(Math.round(topic.duration / 60)) : '')
+  const [videoUrl, setVideoUrl]       = useState(topic.videoUrl ?? '')
   const [isFree, setIsFree]           = useState(topic.isFree ?? false)
   const [isPublished, setIsPublished] = useState(topic.isPublished)
   const [loading, setLoading]         = useState(false)
@@ -299,10 +304,12 @@ function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          description,
-          price: isFree ? 0 : Number(price) || 200,
-          accessDays: Number(accessDays) || 15,
+          title: title.trim(),
+          description: description.trim(),
+          price: isFree ? 0 : (price === '' ? 0 : Number(price)),
+          accessDays: accessDays === '' ? 15 : Number(accessDays),
+          duration: durationMinutes === '' ? 0 : (Number(durationMinutes) || 0) * 60,
+          videoUrl: videoUrl.trim(),
           isFree,
           isPublished,
         }),
@@ -316,18 +323,26 @@ function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void
   return (
     <form onSubmit={handleSave} className="flex flex-col gap-3">
       <h4 className="font-black text-[#27187e] text-sm flex items-center gap-2"><Edit size={14} /> Edit Topic</h4>
-      <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
-        className="w-full bg-[#f7f7ff] border border-[#27187e]/10 focus:border-[#27187e]/40 rounded-xl px-3 py-2 outline-none text-[#27187e] font-bold text-sm" />
-      <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)}
-        placeholder="Topic description..."
-        className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-2 outline-none text-[#4A5043] text-sm resize-none" />
+      <div>
+        <label className="block text-[11px] font-bold text-[#27187e] mb-1">Topic Title</label>
+        <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
+          className="w-full bg-[#f7f7ff] border border-[#27187e]/10 focus:border-[#27187e]/40 rounded-xl px-3 py-2 outline-none text-[#27187e] font-bold text-sm" />
+      </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-[11px] font-bold text-[#27187e] mb-1">Description</label>
+        <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)}
+          placeholder="Topic description..."
+          className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-2 outline-none text-[#4A5043] text-sm resize-none" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-[11px] font-bold text-[#27187e] mb-1">Price (PKR)</label>
           <input
             type="number"
             disabled={isFree}
+            placeholder="0"
             value={price}
             onChange={e => setPrice(e.target.value)}
             className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#27187e] font-bold disabled:opacity-40"
@@ -337,11 +352,33 @@ function TopicEditInline({ topic, onClose }: { topic: Topic; onClose: () => void
           <label className="block text-[11px] font-bold text-[#27187e] mb-1">Access (Days)</label>
           <input
             type="number"
+            placeholder="15"
             value={accessDays}
             onChange={e => setAccessDays(e.target.value)}
             className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#27187e] font-bold"
           />
         </div>
+        <div>
+          <label className="block text-[11px] font-bold text-[#27187e] mb-1">Time (Minutes)</label>
+          <input
+            type="number"
+            placeholder="e.g. 15"
+            value={durationMinutes}
+            onChange={e => setDurationMinutes(e.target.value)}
+            className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#27187e] font-bold"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-bold text-[#27187e] mb-1">Video URL (Cloudinary / MP4)</label>
+        <input
+          type="text"
+          placeholder="https://..."
+          value={videoUrl}
+          onChange={e => setVideoUrl(e.target.value)}
+          className="w-full bg-[#f7f7ff] border border-[#27187e]/10 rounded-xl px-3 py-1.5 outline-none text-xs text-[#4A5043]"
+        />
       </div>
 
       <div className="flex items-center gap-4 text-xs font-semibold text-[#4A5043]">
