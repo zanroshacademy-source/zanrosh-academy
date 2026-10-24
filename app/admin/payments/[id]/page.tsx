@@ -50,9 +50,11 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
           {[
             { label: 'Item', value: itemTitle },
             { label: 'Amount', value: formatPKR(payment.amount) },
+            { label: 'Student Email', value: payment.userEmail || '—' },
+            { label: 'Student Name', value: payment.userName || 'Student' },
             { label: 'Payment Method', value: payment.method === 'easypaisa' ? 'Easypaisa' : 'JazzCash' },
             { label: 'Transaction ID', value: payment.transactionId },
-            { label: 'Student Clerk ID', value: payment.userId },
+            { label: 'Student User ID', value: payment.userId },
             { label: 'Submitted At', value: new Date(payment.createdAt).toLocaleString('en-PK') },
           ].map((row) => (
             <div key={row.label} style={{ padding: '0.875rem', background: 'var(--bg-secondary)', borderRadius: '0.5rem', border: '1px solid var(--border-subtle)' }}>

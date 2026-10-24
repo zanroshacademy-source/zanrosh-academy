@@ -107,8 +107,8 @@ export default async function AdminPaymentsPage() {
                 return (
                   <tr key={pay._id.toString()}>
                     <td style={{ fontWeight: 500, maxWidth: 160 }}>{itemTitle}</td>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {pay.userId?.slice(0, 16)}…
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {pay.userEmail || pay.userName || `${pay.userId?.slice(0, 14)}…`}
                     </td>
                     <td style={{ textTransform: 'capitalize' }}>{pay.method}</td>
                     <td style={{ fontWeight: 600 }}>{formatPKR(pay.amount)}</td>

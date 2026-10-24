@@ -102,9 +102,15 @@ export async function POST(request: Request) {
       easypaisaRef:  orderId,
       userEmail:     emailAddress,
     }
-    if (itemType === 'course') paymentData.courseId = itemId
-    else if (itemType === 'chapter') paymentData.chapterId = itemId
-    else paymentData.topicId = itemId
+    if (itemType === 'course') {
+      paymentData.courseId = itemId
+    } else if (itemType === 'chapter') {
+      paymentData.chapterId = itemId
+    } else {
+      paymentData.topicId = itemId
+      paymentData.chapterId = topic.unitId
+      paymentData.courseId = topic.courseId
+    }
     await Payment.create(paymentData)
 
     // ── Call Easypaisa Initiate MA Transaction API ─────────────────────────────

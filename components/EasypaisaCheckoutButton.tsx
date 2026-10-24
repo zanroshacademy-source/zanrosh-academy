@@ -124,6 +124,7 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
       fd.append('itemId', itemId)
       fd.append('itemType', itemType)
       fd.append('transactionId', txId)
+      fd.append('userEmail', userEmail || email)
       fd.append('method', method === 'qr' ? 'easypaisa_qr' : 'easypaisa_screenshot')
       const res  = await fetch('/api/easypaisa/screenshot', { method: 'POST', body: fd })
       const data = await res.json()

@@ -77,9 +77,9 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
           <!-- Success Badge -->
           <tr>
             <td style="padding:36px 40px 0;text-align:center;">
-              <div style="display:inline-block;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:36px;">✅</div>
-              <h2 style="color:#27187e;font-size:22px;font-weight:900;margin:16px 0 4px;">Payment Confirmed!</h2>
-              <p style="color:#4A5043;font-size:15px;margin:0;">${greeting}, your ${typeLabel} has been unlocked.</p>
+              <div style="display:inline-block;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:36px;">🎉</div>
+              <h2 style="color:#27187e;font-size:22px;font-weight:900;margin:16px 0 4px;">You Got The Course Unlocked!</h2>
+              <p style="color:#4A5043;font-size:15px;margin:0;">${greeting}, your ${typeLabel} <strong>${itemTitle}</strong> is approved! It's unlocked for you now.</p>
             </td>
           </tr>
 
@@ -131,7 +131,7 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
       const { data, error } = await resend.emails.send({
         from: FROM,
         to: [to],
-        subject: `✅ ${itemTitle} Unlocked — Zanrosh Academy`,
+        subject: `🎉 You got ${itemTitle} Unlocked! — Zanrosh Academy`,
         html: studentHtml,
       })
 
@@ -274,7 +274,7 @@ export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
     <div style="margin-top:24px;text-align:center;">
       <a href="${appUrl}/admin/payments" 
          style="display:inline-block;background:#27187e;color:#fff;text-decoration:none;font-weight:bold;padding:14px 32px;border-radius:8px;font-size:15px;box-shadow:0 4px 12px rgba(39,24,126,0.25);">
-        Review &amp; Approve in Admin Panel →
+        Accept &amp; Review Payment in Admin Panel →
       </a>
     </div>
   </div>
@@ -284,7 +284,7 @@ export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
     const { error: adminError } = await resend.emails.send({
       from: FROM,
       to: [ADMIN_EMAIL],
-      subject: `🔔 [Payment Request] Rs ${price.toLocaleString()} for ${itemTitle} from ${userName || userEmail || 'Student'}`,
+      subject: `🔔 [Accept Payment] New payment request of Rs ${price.toLocaleString()} for ${itemTitle} from ${userName || userEmail || 'Student'}`,
       html: adminHtml,
     })
 

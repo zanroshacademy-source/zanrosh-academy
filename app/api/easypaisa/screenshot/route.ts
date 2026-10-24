@@ -7,8 +7,10 @@ import Topic from '@/models/Topic'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { sendPaymentRequestEmail } from '@/lib/mailer'
 
-// ImgBB API Key provided by user
-const IMGBB_API_KEY = '475e56363b7473f610de146a4ab6ce19'
+// Cloudinary config
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dsirwhspw'
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '624353246995188'
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '5OZqxBqV8HcCZXaLmuCDyymF0iI'
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +22,8 @@ export async function POST(request: Request) {
     const itemId     = formData.get('itemId') as string
     const itemType   = formData.get('itemType') as 'course' | 'chapter' | 'topic'
     const txId       = (formData.get('transactionId') as string) || ''
+    const reqMethod  = (formData.get('method') as string) || 'easypaisa'
+    const submittedEmail = (formData.get('userEmail') as string) || (formData.get('email') as string) || ''
     const methodName = 'easypaisa'
 
     if (!file || !itemId || !itemType) return apiError('Missing required fields', 422)
@@ -48,26 +52,29 @@ export async function POST(request: Request) {
       itemTitle = chapter.title || 'Unit'
     }
 
-    // Upload screenshot to ImgBB
-    const arrayBuf = await file.arrayBuffer()
-    const base64   = Buffer.from(arrayBuf).toString('base64')
-    
-    const imgbbFormData = new URLSearchParams()
-    imgbbFormData.append('key', IMGBB_API_KEY)
-    imgbbFormData.append('image', base64)
+    // Upload screenshot to Cloudinary
+    let imageUrl = ''
+    try {
+      const cloudinary = (await import('cloudinary')).v2
+      cloudinary.config({
+        cloud_name: CLOUDINARY_CLOUD_NAME,
+        api_key:    CLOUDINARY_API_KEY,
+        api_secret: CLOUDINARY_API_SECRET,
+      })
 
-    const uploadRes = await fetch('https://api.imgbb.com/1/upload', {
-      method: 'POST',
-      body: imgbbFormData,
-    })
-    
-    const uploadData = await uploadRes.json()
-    if (!uploadRes.ok || !uploadData.success) {
-      console.error('[ImgBB Error]', uploadData)
-      return apiError('Failed to upload screenshot to image server', 500)
+      const arrayBuf = await file.arrayBuffer()
+      const base64   = Buffer.from(arrayBuf).toString('base64')
+      const mime     = file.type || 'image/jpeg'
+      const dataUri  = `data:${mime};base64,${base64}`
+
+      const uploadRes = await cloudinary.uploader.upload(dataUri, {
+        folder: 'zanrosh-academy/screenshots',
+      })
+      imageUrl = uploadRes.secure_url
+    } catch (uploadErr) {
+      console.error('[Cloudinary Screenshot Upload Error]:', uploadErr)
+      return apiError('Failed to upload screenshot to image server. Please try again.', 500)
     }
-
-    const imageUrl = uploadData.data.url
 
     // Clean up old pending screenshot payments for this user+item
     const oldQ: any = { userId, method: methodName, status: 'pending' }
@@ -77,13 +84,13 @@ export async function POST(request: Request) {
     await Payment.deleteMany(oldQ)
 
     // Get student details
-    let userEmail = ''
+    let userEmail = submittedEmail
     let userName = ''
     try {
       const { clerkClient } = await import('@clerk/nextjs/server')
       const client = await clerkClient()
       const clerkUser = await client.users.getUser(userId)
-      userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
+      if (!userEmail) userEmail = clerkUser.emailAddresses[0]?.emailAddress ?? ''
       userName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || ''
     } catch (e) {
       console.warn('[Screenshot] Could not fetch clerk user:', e)
@@ -100,12 +107,24 @@ export async function POST(request: Request) {
       screenshotUrl: imageUrl,
       status:        'pending',
     }
-    if (itemType === 'course') payData.courseId = itemId
-    else if (itemType === 'chapter') payData.chapterId = itemId
-    else payData.topicId = itemId
+    if (itemType === 'course') {
+      payData.courseId = itemId
+    } else if (itemType === 'chapter') {
+      payData.chapterId = itemId
+    } else {
+      payData.topicId = itemId
+      if (topic) {
+        payData.chapterId = topic.unitId
+        payData.courseId = topic.courseId
+      }
+    }
     await Payment.create(payData)
 
-    // Notify zanroshacademy@gmail.com and student
+    // Notify zanroshacademy@gmail.com to accept the payment
+    const methodDisplay = reqMethod.includes('qr')
+      ? 'Easypaisa (QR Code Payment)'
+      : 'Easypaisa (Screenshot / Transfer)'
+
     try {
       await sendPaymentRequestEmail({
         userName: userName || undefined,
@@ -113,7 +132,7 @@ export async function POST(request: Request) {
         itemTitle,
         price,
         itemType,
-        method: 'Easypaisa (Screenshot / Transfer)',
+        method: methodDisplay,
         transactionId: txId || undefined,
         screenshotUrl: imageUrl,
       })
