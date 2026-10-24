@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
 import Course from '@/models/Course'
 import Chapter from '@/models/Chapter'
+import Topic from '@/models/Topic'
 import { getServerAuth } from '@/lib/server-auth'
 import { isSuperAdmin } from '@/lib/auth'
 import Link from 'next/link'
@@ -97,13 +98,16 @@ export default async function AdminPaymentsPage() {
             <tbody>
               {/* */}
               {payments.map((pay: any) => {
-                const itemTitle = typeof pay.topicId === 'object' && pay.topicId
-                  ? `🎬 ${pay.topicId?.title}`
-                  : typeof pay.chapterId === 'object' && pay.chapterId
-                  ? `📖 ${pay.chapterId?.title}`
-                  : typeof pay.courseId === 'object' && pay.courseId
-                  ? `📚 ${pay.courseId?.title}`
-                  : '—'
+                const itemTitle = (typeof pay.topicId === 'object' && pay.topicId?.title)
+                  ? `🎬 Topic: ${pay.topicId.title}`
+                  : (typeof pay.chapterId === 'object' && pay.chapterId?.title)
+                  ? `📖 Unit: ${pay.chapterId.title}`
+                  : (typeof pay.courseId === 'object' && pay.courseId?.title)
+                  ? `📚 Course: ${pay.courseId.title}`
+                  : pay.topicId ? '🎬 Topic'
+                  : pay.chapterId ? '📖 Unit'
+                  : pay.courseId ? '📚 Course'
+                  : 'Course / Topic'
                 return (
                   <tr key={pay._id.toString()}>
                     <td style={{ fontWeight: 500, maxWidth: 160 }}>{itemTitle}</td>

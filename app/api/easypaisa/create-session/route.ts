@@ -56,28 +56,31 @@ export async function POST(request: Request) {
     let price = 0
     let itemTitle = 'Topic'
     let accessDays = 15
+    let currentTopic: any = null
+    let currentChapter: any = null
+    let currentCourse: any = null
 
     if (itemType === 'topic') {
-      const topic = await Topic.findById(itemId)
-      if (!topic) return apiError('Topic not found', 404)
-      if (!topic.isPublished) return apiError('Topic is not available', 403)
-      const unit = await Chapter.findById(topic.unitId)
-      price = (topic.price !== undefined && topic.price !== null && topic.price > 0) ? topic.price : (unit?.price || 0)
-      itemTitle = topic.title || 'Topic'
-      accessDays = topic.accessDays || unit?.accessDays || 15
+      currentTopic = await Topic.findById(itemId)
+      if (!currentTopic) return apiError('Topic not found', 404)
+      if (!currentTopic.isPublished) return apiError('Topic is not available', 403)
+      const unit = await Chapter.findById(currentTopic.unitId)
+      price = (currentTopic.price !== undefined && currentTopic.price !== null && currentTopic.price > 0) ? currentTopic.price : (unit?.price || 0)
+      itemTitle = currentTopic.title || 'Topic'
+      accessDays = currentTopic.accessDays || unit?.accessDays || 15
     } else if (itemType === 'course') {
-      const course = await Course.findById(itemId)
-      if (!course)           return apiError('Course not found', 404)
-      if (!course.isPublished) return apiError('Course is not available', 403)
-      price = course.price
-      itemTitle = course.title || 'Course'
+      currentCourse = await Course.findById(itemId)
+      if (!currentCourse) return apiError('Course not found', 404)
+      if (!currentCourse.isPublished) return apiError('Course is not available', 403)
+      price = currentCourse.price
+      itemTitle = currentCourse.title || 'Course'
     } else {
-      const chapter = await Chapter.findById(itemId)
-      if (!chapter)            return apiError('Chapter not found', 404)
-      if (!chapter.isPublished) return apiError('Chapter is not available', 403)
-      price = chapter.price
-      itemTitle = chapter.title || 'Unit'
-      accessDays = chapter.accessDays ?? 15
+      currentChapter = await Chapter.findById(itemId)
+      if (!currentChapter) return apiError('Chapter not found', 404)
+      if (!currentChapter.isPublished) return apiError('Chapter is not available', 403)
+      price = currentChapter.price
+      itemTitle = currentChapter.title || 'Unit'
+      accessDays = currentChapter.accessDays ?? 15
     }
     if (price <= 0) return apiError('Invalid price', 400)
 
@@ -106,10 +109,13 @@ export async function POST(request: Request) {
       paymentData.courseId = itemId
     } else if (itemType === 'chapter') {
       paymentData.chapterId = itemId
+      if (currentChapter?.courseId) paymentData.courseId = currentChapter.courseId
     } else {
       paymentData.topicId = itemId
-      paymentData.chapterId = topic.unitId
-      paymentData.courseId = topic.courseId
+      if (currentTopic) {
+        paymentData.chapterId = currentTopic.unitId
+        paymentData.courseId = currentTopic.courseId
+      }
     }
     await Payment.create(paymentData)
 
@@ -117,6 +123,7 @@ export async function POST(request: Request) {
     const requestBody = {
       orderId,
       storeId:           EP_STORE_ID,
+      accountNum:        EP_ACCOUNT_NUM,
       transactionAmount: price,   // send as number, not string
       transactionType:   'MA',
       mobileAccountNo,
@@ -125,14 +132,22 @@ export async function POST(request: Request) {
 
     console.log('[Easypaisa MA] Initiating transaction:', requestBody)
 
-    const epRes = await fetch(EP_MA_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Credentials':  getCredentialsHeader(),
-      },
-      body: JSON.stringify(requestBody),
-    })
+    let epRes: Response
+    try {
+      epRes = await fetch(EP_MA_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Credentials':  getCredentialsHeader(),
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(6000),
+      })
+    } catch (fetchErr: any) {
+      console.error('[Easypaisa MA] Gateway connection/timeout error:', fetchErr)
+      await Payment.deleteOne({ easypaisaRef: orderId })
+      return apiError('Easypaisa direct gateway is currently unresponsive. Please pay via QR Code or Screenshot upload.', 504)
+    }
 
     let epData;
     const rawText = await epRes.text();

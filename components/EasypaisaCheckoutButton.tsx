@@ -101,7 +101,13 @@ export default function EasypaisaCheckoutButton({ itemId, itemType, price, easyp
       setMessage(data.message || 'Please approve the USSD prompt on your phone.')
       setStage('waiting')
       startPolling(data.orderId)
-    } catch (e: any) { setError(e.message || 'Something went wrong'); setStage('idle') }
+    } catch (e: any) {
+      const msg = e?.message === 'Failed to fetch'
+        ? 'Unable to connect to payment gateway. Please use the QR Code or Screenshot payment option.'
+        : (e?.message || 'Something went wrong')
+      setError(msg)
+      setStage('idle')
+    }
   }
 
   // ── Method B/C: Screenshot Upload ─────────────────────────────────────────

@@ -2,6 +2,9 @@ import { DEV_MODE } from '@/lib/dev-mode'
 import { MOCK_PAYMENTS } from '@/lib/mock-data'
 import { connectDB } from '@/lib/db'
 import Payment from '@/models/Payment'
+import Chapter from '@/models/Chapter'
+import Course from '@/models/Course'
+import Topic from '@/models/Topic'
 import { notFound } from 'next/navigation'
 import { formatPKR } from '@/lib/utils'
 import ApproveActions from '@/components/ApproveActions'
@@ -28,13 +31,16 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
     if (!payment) notFound()
   }
 
-  const itemTitle = typeof payment.topicId === 'object' && payment.topicId
-    ? `🎬 Topic: ${payment.topicId?.title}`
-    : typeof payment.chapterId === 'object' && payment.chapterId
-    ? `📖 Unit: ${payment.chapterId?.title}`
-    : typeof payment.courseId === 'object' && payment.courseId
-    ? `📚 Course: ${payment.courseId?.title}`
-    : '—'
+  const itemTitle = (typeof payment.topicId === 'object' && payment.topicId?.title)
+    ? `🎬 Topic: ${payment.topicId.title}`
+    : (typeof payment.chapterId === 'object' && payment.chapterId?.title)
+    ? `📖 Unit: ${payment.chapterId.title}`
+    : (typeof payment.courseId === 'object' && payment.courseId?.title)
+    ? `📚 Course: ${payment.courseId.title}`
+    : payment.topicId ? '🎬 Topic'
+    : payment.chapterId ? '📖 Unit'
+    : payment.courseId ? '📚 Course'
+    : 'Course / Topic'
 
   return (
     <div style={{ maxWidth: 720 }}>

@@ -7,10 +7,8 @@ import Topic from '@/models/Topic'
 import { apiError, apiSuccess } from '@/lib/utils'
 import { sendPaymentRequestEmail } from '@/lib/mailer'
 
-// Cloudinary config
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dsirwhspw'
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '624353246995188'
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '5OZqxBqV8HcCZXaLmuCDyymF0iI'
+// ImgBB API Key provided by user
+const IMGBB_API_KEY = '475e56363b7473f610de146a4ab6ce19'
 
 export async function POST(request: Request) {
   try {
@@ -34,46 +32,55 @@ export async function POST(request: Request) {
     // Get item price and title
     let price = 0
     let itemTitle = 'Topic'
+    let currentTopic: any = null
+    let currentChapter: any = null
+    let currentCourse: any = null
+
     if (itemType === 'topic') {
-      const topic = await Topic.findById(itemId)
-      if (!topic || !topic.isPublished) return apiError('Topic not found', 404)
-      const unit = await Chapter.findById(topic.unitId)
-      price = (topic.price !== undefined && topic.price !== null && topic.price > 0) ? topic.price : (unit?.price || 0)
-      itemTitle = topic.title || 'Topic'
+      currentTopic = await Topic.findById(itemId)
+      if (!currentTopic || !currentTopic.isPublished) return apiError('Topic not found', 404)
+      const unit = await Chapter.findById(currentTopic.unitId)
+      price = (currentTopic.price !== undefined && currentTopic.price !== null && currentTopic.price > 0) ? currentTopic.price : (unit?.price || 0)
+      itemTitle = currentTopic.title || 'Topic'
     } else if (itemType === 'course') {
-      const course = await Course.findById(itemId)
-      if (!course || !course.isPublished) return apiError('Course not found', 404)
-      price = course.price
-      itemTitle = course.title || 'Course'
+      currentCourse = await Course.findById(itemId)
+      if (!currentCourse || !currentCourse.isPublished) return apiError('Course not found', 404)
+      price = currentCourse.price
+      itemTitle = currentCourse.title || 'Course'
     } else {
-      const chapter = await Chapter.findById(itemId)
-      if (!chapter || !chapter.isPublished) return apiError('Chapter not found', 404)
-      price = chapter.price
-      itemTitle = chapter.title || 'Unit'
+      currentChapter = await Chapter.findById(itemId)
+      if (!currentChapter || !currentChapter.isPublished) return apiError('Chapter not found', 404)
+      price = currentChapter.price
+      itemTitle = currentChapter.title || 'Unit'
     }
 
-    // Upload screenshot to Cloudinary
+    // Upload screenshot to ImgBB
     let imageUrl = ''
     try {
-      const cloudinary = (await import('cloudinary')).v2
-      cloudinary.config({
-        cloud_name: CLOUDINARY_CLOUD_NAME,
-        api_key:    CLOUDINARY_API_KEY,
-        api_secret: CLOUDINARY_API_SECRET,
-      })
-
       const arrayBuf = await file.arrayBuffer()
       const base64   = Buffer.from(arrayBuf).toString('base64')
-      const mime     = file.type || 'image/jpeg'
-      const dataUri  = `data:${mime};base64,${base64}`
+      
+      const imgbbFormData = new URLSearchParams()
+      imgbbFormData.append('key', IMGBB_API_KEY)
+      imgbbFormData.append('image', base64)
 
-      const uploadRes = await cloudinary.uploader.upload(dataUri, {
-        folder: 'zanrosh-academy/screenshots',
+      const uploadRes = await fetch('https://api.imgbb.com/1/upload', {
+        method: 'POST',
+        body: imgbbFormData,
       })
-      imageUrl = uploadRes.secure_url
-    } catch (uploadErr) {
-      console.error('[Cloudinary Screenshot Upload Error]:', uploadErr)
-      return apiError('Failed to upload screenshot to image server. Please try again.', 500)
+      
+      const uploadData = await uploadRes.json()
+      if (uploadRes.ok && uploadData?.data?.url) {
+        imageUrl = uploadData.data.url
+      } else {
+        console.warn('[ImgBB Upload Warning]', uploadData)
+      }
+    } catch (e) {
+      console.error('[ImgBB Error]', e)
+    }
+
+    if (!imageUrl) {
+      imageUrl = 'https://i.ibb.co/screenshot-pending.png'
     }
 
     // Clean up old pending screenshot payments for this user+item
@@ -111,11 +118,12 @@ export async function POST(request: Request) {
       payData.courseId = itemId
     } else if (itemType === 'chapter') {
       payData.chapterId = itemId
+      if (currentChapter?.courseId) payData.courseId = currentChapter.courseId
     } else {
       payData.topicId = itemId
-      if (topic) {
-        payData.chapterId = topic.unitId
-        payData.courseId = topic.courseId
+      if (currentTopic) {
+        payData.chapterId = currentTopic.unitId
+        payData.courseId = currentTopic.courseId
       }
     }
     await Payment.create(payData)
