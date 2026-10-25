@@ -18,6 +18,7 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
     accessDays: '15',
     isFree: false,
     isPublished: true,
+    lecturedBy: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -40,6 +41,7 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
           order: nextOrder,
           isFree: form.isFree,
           isPublished: form.isPublished,
+          lecturedBy: form.lecturedBy,
           // Videos live on Topics, not Units — leave these empty
           videoUrl: '',
           cloudinaryPublicId: '',
@@ -51,7 +53,7 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
       if (!res.ok) { setError(data.error || 'Failed to create unit'); return }
 
       setSuccess(true)
-      setForm({ title: '', description: '', price: '', accessDays: '15', isFree: false, isPublished: true })
+      setForm({ title: '', description: '', price: '', accessDays: '15', isFree: false, isPublished: true, lecturedBy: '' })
       setTimeout(() => router.refresh(), 100)
     } catch {
       setError('Network error. Please try again.')
@@ -90,6 +92,16 @@ export default function AdminAddChapterForm({ courseId, nextOrder }: AdminAddCha
               className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium placeholder-gray-400 resize-y text-sm"
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })} />
+          </div>
+
+          {/* Lectures By */}
+          <div>
+            <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider" htmlFor="unitLecturedBy">Lectures By</label>
+            <input id="unitLecturedBy" type="text"
+              placeholder="e.g. Sir Maqbool Ahmed"
+              className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium placeholder-gray-400 text-sm"
+              value={form.lecturedBy}
+              onChange={e => setForm({ ...form, lecturedBy: e.target.value })} />
           </div>
         </div>
 

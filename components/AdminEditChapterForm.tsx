@@ -12,6 +12,7 @@ interface Unit {
   accessDays?: number
   isFree: boolean
   isPublished: boolean
+  lecturedBy?: string
 }
 
 interface AdminEditChapterFormProps {
@@ -27,6 +28,7 @@ export default function AdminEditChapterForm({ chapter, onClose }: AdminEditChap
   const [accessDays, setAccessDays] = useState(String(chapter.accessDays ?? 15))
   const [isFree, setIsFree]         = useState(chapter.isFree)
   const [isPublished, setIsPublished] = useState(chapter.isPublished)
+  const [lecturedBy, setLecturedBy] = useState(chapter.lecturedBy || '')
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState('')
   const [success, setSuccess]       = useState(false)
@@ -46,6 +48,7 @@ export default function AdminEditChapterForm({ chapter, onClose }: AdminEditChap
           accessDays: accessDays === '' || isNaN(parseInt(accessDays)) ? 15 : parseInt(accessDays),
           isFree,
           isPublished,
+          lecturedBy,
         }),
       })
       const data = await res.json()
@@ -91,6 +94,15 @@ export default function AdminEditChapterForm({ chapter, onClose }: AdminEditChap
             <textarea rows={3}
               className="w-full bg-white border border-[#27187e]/10 rounded-xl px-4 py-2.5 outline-none text-[#4A5043] font-medium resize-y text-sm"
               value={description} onChange={e => setDescription(e.target.value)} />
+          </div>
+
+          {/* Lectures By */}
+          <div>
+            <label className="block text-[#27187e] font-bold mb-1 text-xs uppercase tracking-wider">Lectures By</label>
+            <input type="text"
+              placeholder="e.g. Sir Maqbool Ahmed"
+              className="w-full bg-white border border-[#27187e]/10 focus:border-[#27187e]/40 rounded-xl px-4 py-2.5 outline-none text-[#4A5043] font-medium text-sm"
+              value={lecturedBy} onChange={e => setLecturedBy(e.target.value)} />
           </div>
         </div>
 

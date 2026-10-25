@@ -81,8 +81,8 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-bold text-[#27187e] text-sm mb-0.5">Office Address</h3>
                   <p className="text-[#4A5043] text-sm font-medium leading-relaxed">
-                    Sariab Road<br />
-                    Balochistan<br />
+                    Satellite Town<br />
+                    Quetta, Balochistan<br />
                     Pakistan
                   </p>
                 </div>
@@ -155,7 +155,7 @@ export default function ContactPage() {
                   id="contact-phone"
                   type="tel"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#27187e]/50 text-sm"
-                  placeholder="+92 333 8945859"
+                  placeholder=""
                 />
               </div>
 

@@ -179,51 +179,6 @@ export default async function HomePage() {
       {/* ─── Light Bento Box Features Section ─── */}
       <BentoFeatures />
 
-      {/* ─── Why Choose Us Section ─── */}
-      <section className="py-24 px-6 bg-white relative overflow-hidden">
-        <div className="max-w-6xl mx-auto relative z-10">
-          
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-[#27187e] mb-4">Why Choose Zanrosh Academy?</h2>
-            <p className="text-[#4A5043] text-lg max-w-3xl mx-auto font-medium leading-relaxed">
-              Don't just memorize physics, see it in action! We turn complex formulas into simple visualizations. Prep perfectly for board exams or entry tests without leaving gaps.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-[#f7f7ff] rounded-3xl p-8 border border-[#27187e]/5 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <GraduationCap size={28} className="text-[#3a86ff]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#27187e] mb-3">Expert Faculty</h3>
-              <p className="text-[#4A5043] font-medium leading-relaxed">
-                Learn directly from the top lecturer of Government Postgraduate Boys College. Unmatched expertise at your fingertips.
-              </p>
-            </div>
-
-            <div className="bg-[#f7f7ff] rounded-3xl p-8 border border-[#27187e]/5 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <BookOpen size={28} className="text-[#3a86ff]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#27187e] mb-3">Complete Coverage</h3>
-              <p className="text-[#4A5043] font-medium leading-relaxed">
-               100% Board Aligned topics, Complete Lectures, Solved MCQs, Short Questions, and Step by Step Numericals.
-              </p>
-            </div>
-
-            <div className="bg-[#f7f7ff] rounded-3xl p-8 border border-[#27187e]/5 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <Shield size={28} className="text-[#3a86ff]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#27187e] mb-3">Safe & Accessible</h3>
-              <p className="text-[#4A5043] font-medium leading-relaxed">
-               The perfect learning solution for students facing transportation challenges. Study physics safely from home.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ─── Testimonials Section ─── */}
       <section className="py-24 px-6 bg-[#27187e] text-white">
         <div className="max-w-6xl mx-auto">
@@ -295,7 +250,7 @@ export default async function HomePage() {
              </Link>
              <p className="text-gray-400 text-sm mb-4">Empowering Balochistan's students with modern education.</p>
              <div className="text-gray-400 text-sm flex flex-col gap-1">
-               <p><strong>Address:</strong> Green Town Sariab Road Quetta</p>
+               <p><strong>Address:</strong> Satellite Town, Quetta, Balochistan, Pakistan</p>
                <p><strong>Email:</strong> info@zanroshacademy.com</p>
                <p><strong>Phone:</strong> 0370 0248454</p>
              </div>

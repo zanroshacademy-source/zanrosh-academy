@@ -16,6 +16,7 @@ export interface IChapterDocument extends Document {
   // New fields for Unit model
   accessDays: number   // how many days access lasts after purchase (default 15)
   unitNumber: number   // display number shown to students
+  lecturedBy: string
   createdAt: Date
   updatedAt: Date
 }
@@ -42,6 +43,7 @@ const ChapterSchema = new Schema<IChapterDocument>(
     // Unit-specific fields
     accessDays:  { type: Number, default: 15, min: 1, max: 365 },
     unitNumber:  { type: Number, default: 0 },
+    lecturedBy:  { type: String, default: '' },
   },
   { timestamps: true }
 )

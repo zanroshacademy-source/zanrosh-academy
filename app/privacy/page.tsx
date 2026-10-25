@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           <h2>1. Information We Collect</h2>
           <ul>
             <li><strong>Personal Information:</strong> When you register or purchase a course, we collect your name, email address, and phone number.</li>
-            <li><strong>Payment Information:</strong> We do not store your credit card or sensitive financial data. All payments are securely processed by third-party gateways like Safepay.</li>
+            <li><strong>Payment Information:</strong> We do not store your credit card or sensitive financial data. All payments are securely processed by third-party gateways like Easypaisa.</li>
             <li><strong>Usage Data:</strong> We may collect data on how you interact with our website to improve user experience.</li>
           </ul>
 

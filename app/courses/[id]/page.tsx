@@ -56,7 +56,7 @@ async function getCourseData(id: string, userId: string | null) {
     unitId: { $in: units.map(u => u._id) },
   })
     .sort({ order: 1 })
-    .select('_id title description duration order unitId price isFree accessDays isPublished')
+    .select('_id title description duration order unitId isFree isPublished')
     .lean()
 
   const topicsByUnit = new Map<string, typeof allTopics>()
@@ -182,7 +182,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
         <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
           <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Topics</h2>
           <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
-            Buy and unlock individual topics directly. Watch anytime during your access period.
+            Buy a unit to unlock all its topics.
           </p>
 
           <div className="flex flex-col gap-6">
@@ -206,7 +206,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
                   idx={idx}
                   isUnitPurchased={isUnitPurchased && !isUnitExpired}
                   isFullCoursePurchased={isFullCoursePurchased}
-                  purchasedTopics={purchasedTopics}
                   userId={userId}
                 />
               )
@@ -234,14 +233,12 @@ function UnitSection({
   idx,
   isUnitPurchased,
   isFullCoursePurchased,
-  purchasedTopics,
   userId,
 }: {
   unit: any
   idx: number
   isUnitPurchased: boolean
   isFullCoursePurchased: boolean
-  purchasedTopics: Record<string, string | null>
   userId: string | null
 }) {
   const totalTopics = unit.topics.length
@@ -249,13 +246,7 @@ function UnitSection({
 
   // Count how many topics are unlocked
   const unlockedCount = unit.topics.filter((t: any) => {
-    if (unit.isFree || t.isFree || isFullCoursePurchased || isUnitPurchased) return true
-    const expStr = purchasedTopics[t._id]
-    if (expStr) {
-      const exp = new Date(expStr)
-      return exp >= new Date()
-    }
-    return false
+    return unit.isFree || t.isFree || isFullCoursePurchased || isUnitPurchased
   }).length
 
   return (
@@ -271,6 +262,7 @@ function UnitSection({
             <div className="flex items-center gap-3 text-xs text-[#4A5043]/60 font-medium mt-0.5">
               <span>{totalTopics} topic{totalTopics !== 1 ? 's' : ''}</span>
               {totalDuration > 0 && <span>· {formatDuration(totalDuration)}</span>}
+              {unit.lecturedBy && <span>· Lectures By: {unit.lecturedBy}</span>}
               {unlockedCount > 0 && (
                 <span className="text-emerald-700 font-bold">· {unlockedCount}/{totalTopics} Unlocked</span>
               )}
@@ -278,37 +270,37 @@ function UnitSection({
           </div>
         </div>
 
-        {unit.isFree && (
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold px-3 py-1 rounded-full shrink-0">
-            Free Unit
-          </span>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {unit.isFree && (
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold px-3 py-1 rounded-full">
+              Free Unit
+            </span>
+          )}
+          {!isUnitPurchased && !unit.isFree && !isFullCoursePurchased && userId && (
+            <Link href={`/buy/${unit._id}`} className="inline-flex items-center gap-1.5 bg-[#27187e] hover:bg-[#1a0f5a] text-white text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm hover:scale-105 active:scale-100">
+              Buy {formatPKR(unit.price)} →
+            </Link>
+          )}
+          {!isUnitPurchased && !unit.isFree && !isFullCoursePurchased && !userId && (
+            <Link href="/sign-in" className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#4A5043] text-xs font-bold px-4 py-2 rounded-xl transition-all border border-gray-200">
+              <Lock size={13} /> Sign in to Buy
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* Topics list with direct buy / watch button on every topic */}
+      {/* Topics list */}
       <div className="p-4 sm:p-5">
         {unit.topics.length === 0 ? (
           <p className="text-[#4A5043]/40 text-sm font-medium py-3 text-center">No topics in this unit yet.</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {unit.topics.map((topic: any, tIdx: number) => {
-              const topicExpStr = purchasedTopics[topic._id]
-              const hasDirectPurchase = topic._id in purchasedTopics
-              const topicExp = topicExpStr ? new Date(topicExpStr) : null
-              const isTopicExpired = topicExp ? topicExp < new Date() : false
-
-              const topicPrice = topic.price !== undefined && topic.price !== null && topic.price > 0
-                ? topic.price
-                : (unit.price || 0)
-              const topicAccessDays = topic.accessDays || unit.accessDays || 15
-
               const isUnlocked =
                 unit.isFree ||
                 topic.isFree ||
-                topicPrice === 0 ||
                 isFullCoursePurchased ||
-                isUnitPurchased ||
-                (hasDirectPurchase && !isTopicExpired)
+                isUnitPurchased
 
               return (
                 <div
@@ -331,12 +323,12 @@ function UnitSection({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-[#27187e] text-sm truncate">{topic.title}</span>
-                        {(topic.isFree || topicPrice === 0) && (
+                        {topic.isFree && (
                           <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
                             Free
                           </span>
                         )}
-                        {isUnlocked && !topic.isFree && !unit.isFree && topicPrice > 0 && (
+                        {isUnlocked && !topic.isFree && !unit.isFree && (
                           <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
                             <CheckCircle size={10} /> Unlocked
                           </span>
@@ -346,18 +338,11 @@ function UnitSection({
                         <span className="flex items-center gap-1">
                           <Clock size={11} /> {topic.duration > 0 ? formatDuration(topic.duration) : 'Video Lesson'}
                         </span>
-                        {!isUnlocked ? (
-                          <span>· {topicAccessDays} Days Access</span>
-                        ) : topicExp && !isTopicExpired ? (
-                          <span className="text-emerald-700 font-bold">
-                            · {Math.max(1, Math.ceil((topicExp.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days access left
-                          </span>
-                        ) : null}
                       </div>
                     </div>
                   </div>
 
-                  {/* Direct Action for this Topic */}
+                  {/* Action for this Topic */}
                   <div className="shrink-0 self-end sm:self-auto">
                     {isUnlocked ? (
                       <Link
@@ -366,20 +351,10 @@ function UnitSection({
                       >
                         <PlayCircle size={14} /> Watch
                       </Link>
-                    ) : userId ? (
-                      <Link
-                        href={`/buy/topic/${topic._id}`}
-                        className="inline-flex items-center gap-1.5 bg-[#27187e] hover:bg-[#1a0f5a] text-white text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm hover:scale-105 active:scale-100"
-                      >
-                        Buy {formatPKR(topicPrice)}
-                      </Link>
                     ) : (
-                      <Link
-                        href="/sign-in"
-                        className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#4A5043] text-xs font-bold px-4 py-2 rounded-xl transition-all border border-gray-200"
-                      >
-                        <Lock size={13} /> Sign in
-                      </Link>
+                      <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-400 text-xs font-bold px-4 py-2 rounded-xl border border-gray-200">
+                        <Lock size={13} /> Locked
+                      </span>
                     )}
                   </div>
                 </div>

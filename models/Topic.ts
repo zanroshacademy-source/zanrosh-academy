@@ -12,8 +12,6 @@ export interface ITopicDocument extends Document {
   order: number      // 1–30
   isPublished: boolean
   isFree: boolean
-  price: number       // PKR — paid topics have a price
-  accessDays: number  // how many days access lasts after purchase
   createdAt: Date
   updatedAt: Date
 }
@@ -41,8 +39,6 @@ const TopicSchema = new Schema<ITopicDocument>(
     order:              { type: Number, required: true, default: 1 },
     isPublished:        { type: Boolean, default: false },
     isFree:             { type: Boolean, default: false },
-    price:              { type: Number, default: 0 },
-    accessDays:         { type: Number, default: 15, min: 1, max: 365 },
   },
   { timestamps: true }
 )

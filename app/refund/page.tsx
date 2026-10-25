@@ -41,7 +41,7 @@ export default function RefundPage() {
             <li>Order/Transaction ID.</li>
             <li>A detailed explanation of the issue (with screenshots if applicable).</li>
           </ul>
-          <p>Our team will review your request and respond within 3-5 business days. If approved, refunds will be processed back to the original payment method (e.g., Safepay, Easypaisa, or Credit Card).</p>
+          <p>Our team will review your request and respond within 3-5 business days. If approved, refunds will be processed back to the original payment method (e.g., Easypaisa).</p>
 
           <h2>4. Cancellations</h2>
           <p>For any recurring subscriptions (if applicable), you may cancel your subscription at any time from your account settings. Cancellation will prevent future billing, but you will retain access to the content until the end of your current billing cycle. No partial refunds are provided for mid-cycle cancellations.</p>

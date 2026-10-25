@@ -25,9 +25,6 @@ export default function AdminAddTopicForm({
     description: '',
     isPublished: true,
   })
-  const [price, setPrice]             = useState('')
-  const [accessDays, setAccessDays]   = useState('15')
-  const [isFree, setIsFree]           = useState(false)
   const [directVideoUrl, setDirectVideoUrl] = useState('')
   const [videoUrl, setVideoUrl]       = useState('')
   const [publicId, setPublicId]       = useState('')
@@ -131,9 +128,6 @@ export default function AdminAddTopicForm({
           duration: (parseInt(duration) || 0) * 60,
           order: nextOrder,
           isPublished: form.isPublished,
-          price: isFree ? 0 : (price === '' ? 0 : Number(price)),
-          isFree,
-          accessDays: accessDays === '' ? 15 : Number(accessDays),
         }),
       })
       const data = await res.json()
@@ -206,52 +200,8 @@ export default function AdminAddTopicForm({
               />
             </div>
 
-            {/* Pricing & Access Duration */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">
-                  Price (PKR)
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 150"
-                  disabled={isFree}
-                  className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-sm disabled:opacity-40"
-                  value={price}
-                  onChange={e => setPrice(e.target.value)}
-                  min={0}
-                />
-              </div>
-              <div>
-                <label className="block text-[#27187e] font-bold mb-1.5 text-xs uppercase tracking-wider">
-                  Access (Days)
-                </label>
-                <input
-                  type="number"
-                  placeholder="15"
-                  className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2 outline-none transition-all text-[#4A5043] font-medium text-sm"
-                  value={accessDays}
-                  onChange={e => setAccessDays(e.target.value)}
-                  min={1}
-                  max={365}
-                />
-              </div>
-            </div>
-
-            {/* Checkboxes: Free Topic + Publish */}
+            {/* Checkboxes: Publish */}
             <div className="flex flex-col gap-2 pt-1">
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={isFree}
-                  onChange={e => setIsFree(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#27187e] cursor-pointer"
-                />
-                <span className="font-semibold text-xs text-[#4A5043] group-hover:text-[#27187e] transition-colors">
-                  🎁 Free Topic (Students can watch without paying)
-                </span>
-              </label>
-
               <label className="flex items-center gap-2.5 cursor-pointer group">
                 <input
                   type="checkbox"
