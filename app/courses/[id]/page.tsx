@@ -180,9 +180,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
 
         {/* ── Units & Topics List ────────────────────────────────────── */}
         <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
-          <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Topics</h2>
+          <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Videos</h2>
           <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
-            Buy a unit to unlock all its topics.
+            Buy a unit to unlock all its videos.
           </p>
 
           <div className="flex flex-col gap-6">
@@ -241,10 +241,10 @@ function UnitSection({
   isFullCoursePurchased: boolean
   userId: string | null
 }) {
-  const totalTopics = unit.topics.length
+  const totalVideos = unit.topics.length
   const totalDuration = unit.topics.reduce((a: number, t: any) => a + (t.duration ?? 0), 0)
 
-  // Count how many topics are unlocked
+  // Count how many videos are unlocked
   const unlockedCount = unit.topics.filter((t: any) => {
     return unit.isFree || t.isFree || isFullCoursePurchased || isUnitPurchased
   }).length
@@ -260,11 +260,11 @@ function UnitSection({
           <div className="min-w-0">
             <h3 className="font-black text-[#27187e] text-lg leading-tight truncate">{unit.title}</h3>
             <div className="flex items-center gap-3 text-xs text-[#4A5043]/60 font-medium mt-0.5">
-              <span>{totalTopics} topic{totalTopics !== 1 ? 's' : ''}</span>
+              <span>{totalVideos} video{totalVideos !== 1 ? 's' : ''}</span>
               {totalDuration > 0 && <span>· {formatDuration(totalDuration)}</span>}
               {unit.lecturedBy && <span>· Lectures By: {unit.lecturedBy}</span>}
               {unlockedCount > 0 && (
-                <span className="text-emerald-700 font-bold">· {unlockedCount}/{totalTopics} Unlocked</span>
+                <span className="text-emerald-700 font-bold">· {unlockedCount}/{totalVideos} Unlocked</span>
               )}
             </div>
           </div>
@@ -292,7 +292,7 @@ function UnitSection({
       {/* Topics list */}
       <div className="p-4 sm:p-5">
         {unit.topics.length === 0 ? (
-          <p className="text-[#4A5043]/40 text-sm font-medium py-3 text-center">No topics in this unit yet.</p>
+          <p className="text-[#4A5043]/40 text-sm font-medium py-3 text-center">No videos in this unit yet.</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {unit.topics.map((topic: any, tIdx: number) => {

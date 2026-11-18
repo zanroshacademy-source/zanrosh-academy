@@ -111,8 +111,8 @@ export async function sendCourseUnlockedEmail(data: CourseUnlockedEmailData) {
           <tr>
             <td style="background:#f7f7ff;padding:20px 40px;text-align:center;border-top:1px solid rgba(39,24,126,0.06);">
               <p style="color:#9ca3af;font-size:12px;margin:0;">
-                © ${new Date().getFullYear()} Zanrosh Academy · Green Town Sariab Road, Quetta<br/>
-                Questions? Email us at <a href="mailto:info@zanroshacademy.com" style="color:#3a86ff;">info@zanroshacademy.com</a>
+                © ${new Date().getFullYear()} Zanrosh Academy · Satellite Town, Quetta, Balochistan<br/>
+                Questions? Email us at <a href="mailto:zanroshacademy@gmail.com" style="color:#3a86ff;">zanroshacademy@gmail.com</a>
               </p>
             </td>
           </tr>

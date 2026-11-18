@@ -273,6 +273,7 @@ export default function AdminAddTopicForm({
               <input type="number" placeholder="Auto-filled on upload"
                 className="w-full bg-[#f7f7ff] border-2 border-transparent focus:border-[#27187e] focus:bg-white rounded-xl px-4 py-2.5 outline-none transition-all text-[#4A5043] font-medium text-sm"
                 value={duration} onChange={e => setDuration(e.target.value)} min={0} />
+              <p className="text-[10px] text-gray-400 mt-1 pl-1">Auto-filled from video upload. You can override it manually.</p>
             </div>
           </div>
         </div>

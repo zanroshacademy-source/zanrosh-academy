@@ -65,7 +65,7 @@ export default async function HomePage() {
             <FadeIn delay={100} duration={800}>
               <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium text-xs sm:text-sm mb-6 shadow-lg text-center leading-snug">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                <span>Enrollments open for 2026-2027 Session</span>
+                <span>Enrollments open for 2027 Session</span>
               </div>
             </FadeIn>
 
@@ -251,7 +251,7 @@ export default async function HomePage() {
              <p className="text-gray-400 text-sm mb-4">Empowering Balochistan's students with modern education.</p>
              <div className="text-gray-400 text-sm flex flex-col gap-1">
                <p><strong>Address:</strong> Satellite Town, Quetta, Balochistan, Pakistan</p>
-               <p><strong>Email:</strong> info@zanroshacademy.com</p>
+               <p><strong>Email:</strong> zanroshacademy@gmail.com</p>
                <p><strong>Phone:</strong> 0370 0248454</p>
              </div>
            </div>
@@ -269,7 +269,7 @@ export default async function HomePage() {
 
         <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row justify-between items-center gap-6">
           <div className="text-gray-500 text-sm flex flex-col md:flex-row items-center gap-2">
-            <span>© 2026 Zanrosh Academy. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Zanrosh Academy. All rights reserved.</span>
             <span className="hidden md:inline">•</span>
             <span>Made by <a href="mailto:arzunoteam@gmail.com" className="hover:text-white transition-colors underline decoration-white/30 underline-offset-2">Arzuno Team</a></span>
           </div>
