@@ -6,9 +6,9 @@ import Topic from '@/models/Topic'
 import Purchase from '@/models/Purchase'
 import Link from 'next/link'
 import {
-  BookOpen, Lock, Unlock, Video,
+  BookOpen, Lock, Video,
   PlayCircle, Clock,
-  AlertCircle, CheckCircle, ChevronRight
+  AlertCircle, CheckCircle
 } from 'lucide-react'
 import { formatPKR, formatDuration } from '@/lib/utils'
 import { notFound } from 'next/navigation'
@@ -22,6 +22,12 @@ function safeToIsoString(d: any): string | null {
   } catch {
     return null
   }
+}
+
+interface UnitAccessInfo {
+  isPurchased: boolean
+  isExpired: boolean
+  expiresAt: string | null
 }
 
 async function getCourseData(id: string, userId: string | null) {
@@ -51,7 +57,7 @@ async function getCourseData(id: string, userId: string | null) {
   // Load units for this course
   const units = await Chapter.find({ courseId: course._id }).sort({ order: 1 }).lean()
 
-  // Load all topics for every unit in one query (using real admin data from DB)
+  // Load all topics for every unit in one query
   const allTopics = await Topic.find({
     unitId: { $in: units.map(u => u._id) },
   })
@@ -67,41 +73,57 @@ async function getCourseData(id: string, userId: string | null) {
   })
 
   let isFullCoursePurchased = false
-  const purchasedUnitIds = new Map<string, Date | null>()
-  const purchasedTopicIds = new Map<string, Date | null>()
+  const unitAccessMap: Record<string, UnitAccessInfo> = {}
 
   if (userId) {
     const auth = await import('@/lib/auth')
     if (await auth.isSuperAdmin()) {
       isFullCoursePurchased = true
     } else {
-      const [coursePurchase, unitPurchases, topicPurchases] = await Promise.all([
-        Purchase.findOne({ userId, courseId: id, status: 'approved' }).lean(),
+      const [coursePurchase, unitPurchases] = await Promise.all([
+        Purchase.findOne({ userId, courseId: id, status: 'approved' }).sort({ createdAt: -1 }).lean() as Promise<any>,
         Purchase.find({
           userId,
           chapterId: { $in: units.map(u => u._id) },
           status: 'approved',
         }).lean() as Promise<any[]>,
-        Purchase.find({
-          userId,
-          topicId: { $in: allTopics.map(t => t._id) },
-          status: 'approved',
-        }).lean() as Promise<any[]>,
       ])
 
       if (coursePurchase) {
-        isFullCoursePurchased = true
+        if (!coursePurchase.expiresAt || new Date(coursePurchase.expiresAt) >= new Date()) {
+          isFullCoursePurchased = true
+        }
       }
 
+      // Group purchases by chapterId to find the active or latest purchase
+      const purchasesByChapter = new Map<string, any[]>()
       unitPurchases.forEach((p: any) => {
         if (p.chapterId) {
-          purchasedUnitIds.set(p.chapterId.toString(), p.expiresAt ?? null)
+          const chKey = p.chapterId.toString()
+          if (!purchasesByChapter.has(chKey)) purchasesByChapter.set(chKey, [])
+          purchasesByChapter.get(chKey)!.push(p)
         }
       })
 
-      topicPurchases.forEach((p: any) => {
-        if (p.topicId) {
-          purchasedTopicIds.set(p.topicId.toString(), p.expiresAt ?? null)
+      purchasesByChapter.forEach((pList, chKey) => {
+        // Check if there is an active purchase (lifetime or unexpired)
+        const activePurchase = pList.find(p => !p.expiresAt || new Date(p.expiresAt) >= new Date())
+        if (activePurchase) {
+          unitAccessMap[chKey] = {
+            isPurchased: true,
+            isExpired: false,
+            expiresAt: safeToIsoString(activePurchase.expiresAt),
+          }
+        } else {
+          // All are expired: find the most recently expired one
+          const sorted = pList.slice().sort(
+            (a, b) => new Date(b.expiresAt || 0).getTime() - new Date(a.expiresAt || 0).getTime()
+          )
+          unitAccessMap[chKey] = {
+            isPurchased: true,
+            isExpired: true,
+            expiresAt: safeToIsoString(sorted[0]?.expiresAt),
+          }
         }
       })
     }
@@ -120,12 +142,7 @@ async function getCourseData(id: string, userId: string | null) {
       })),
     })),
     isFullCoursePurchased,
-    purchasedUnits: Object.fromEntries(
-      Array.from(purchasedUnitIds.entries()).map(([k, v]) => [k, safeToIsoString(v)])
-    ),
-    purchasedTopics: Object.fromEntries(
-      Array.from(purchasedTopicIds.entries()).map(([k, v]) => [k, safeToIsoString(v)])
-    ),
+    unitAccessMap,
   }
 }
 
@@ -145,7 +162,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
     const data = await getCourseData(id, userId)
     if (!data) notFound()
 
-    const { course, units, isFullCoursePurchased, purchasedUnits, purchasedTopics } = data
+    const { course, units, isFullCoursePurchased, unitAccessMap } = data
 
     return (
       <div className="min-h-screen bg-[#f7f7ff]">
@@ -178,14 +195,16 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           </div>
         </div>
 
-        {/* ── Units & Topics List ────────────────────────────────────── */}
+        {/* ── Units List (Only Units shown, no topics list) ─────────── */}
         <main className="max-w-4xl mx-auto px-4 py-10 pb-20">
-          <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Videos</h2>
-          <p className="text-[#4A5043]/60 text-sm font-medium mb-6">
-            Buy a unit to unlock all its videos.
-          </p>
+          <div className="mb-8">
+            <h2 className="text-2xl font-black text-[#27187e] mb-2">Course Units</h2>
+            <p className="text-[#4A5043]/70 text-sm font-medium">
+              Choose any unit to unlock and watch all its video lessons.
+            </p>
+          </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5">
             {units.length === 0 && (
               <div className="text-center py-16 bg-white rounded-3xl border border-[#27187e]/10 shadow-sm">
                 <AlertCircle size={40} className="mx-auto mb-4 text-[#27187e]/20" />
@@ -194,18 +213,26 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             )}
 
             {units.map((unit: any, idx: number) => {
-              const unitExpiresAtStr = purchasedUnits[unit._id]
-              const isUnitPurchased = isFullCoursePurchased || unit._id in purchasedUnits
-              const unitExpiresAt = unitExpiresAtStr ? new Date(unitExpiresAtStr) : null
-              const isUnitExpired = unitExpiresAt ? unitExpiresAt < new Date() : false
+              const accessInfo = unitAccessMap[unit._id]
+              const isUnitActive =
+                isFullCoursePurchased ||
+                unit.isFree ||
+                (accessInfo?.isPurchased && !accessInfo?.isExpired)
+              const isUnitExpired =
+                !isUnitActive &&
+                !unit.isFree &&
+                !isFullCoursePurchased &&
+                (accessInfo?.isExpired || false)
+              const expiresAt = accessInfo?.expiresAt ? new Date(accessInfo.expiresAt) : null
 
               return (
-                <UnitSection
+                <UnitCard
                   key={unit._id}
                   unit={unit}
                   idx={idx}
-                  isUnitPurchased={isUnitPurchased && !isUnitExpired}
-                  isFullCoursePurchased={isFullCoursePurchased}
+                  isUnlocked={Boolean(isUnitActive)}
+                  isExpired={Boolean(isUnitExpired)}
+                  expiresAt={expiresAt}
                   userId={userId}
                 />
               )
@@ -227,141 +254,147 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   }
 }
 
-// ── Unit Section with Topics ──────────────────────────────────────────
-function UnitSection({
+// ── Clean Unit Card (Shows only Unit, Video Count, and Action Button) ─
+function UnitCard({
   unit,
   idx,
-  isUnitPurchased,
-  isFullCoursePurchased,
+  isUnlocked,
+  isExpired,
+  expiresAt,
   userId,
 }: {
   unit: any
   idx: number
-  isUnitPurchased: boolean
-  isFullCoursePurchased: boolean
+  isUnlocked: boolean
+  isExpired: boolean
+  expiresAt: Date | null
   userId: string | null
 }) {
-  const totalVideos = unit.topics.length
-  const totalDuration = unit.topics.reduce((a: number, t: any) => a + (t.duration ?? 0), 0)
+  const totalVideos = unit.topics?.length || 0
+  const totalDuration = unit.topics?.reduce((a: number, t: any) => a + (t.duration ?? 0), 0) || 0
+  const firstTopicId = unit.topics && unit.topics.length > 0 ? unit.topics[0]._id : null
+  const watchUrl = firstTopicId ? `/watch/topic/${firstTopicId}` : `/watch/${unit._id}`
 
-  // Count how many videos are unlocked
-  const unlockedCount = unit.topics.filter((t: any) => {
-    return unit.isFree || t.isFree || isFullCoursePurchased || isUnitPurchased
-  }).length
+  let daysRemaining: number | null = null
+  if (expiresAt && !isExpired) {
+    const diff = expiresAt.getTime() - Date.now()
+    daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+  }
 
   return (
-    <div className="bg-white border border-[#27187e]/10 shadow-sm rounded-3xl overflow-hidden transition-all">
-      {/* Unit header */}
-      <div className="flex items-center justify-between gap-4 p-5 bg-[#f7f7ff]/70 border-b border-[#27187e]/5">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-[#27187e] text-white flex items-center justify-center font-black text-sm shrink-0">
+    <div
+      className={`bg-white border rounded-3xl p-6 sm:p-7 shadow-sm transition-all hover:shadow-md ${
+        isUnlocked
+          ? 'border-emerald-200/90 bg-gradient-to-br from-white to-emerald-50/20'
+          : isExpired
+          ? 'border-amber-200/90 bg-gradient-to-br from-white to-amber-50/20'
+          : 'border-[#27187e]/10'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        
+        {/* Left: Unit Details */}
+        <div className="flex items-start gap-4 flex-1 min-w-0">
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shrink-0 shadow-sm ${
+              isUnlocked
+                ? 'bg-emerald-600 text-white'
+                : isExpired
+                ? 'bg-amber-500 text-white'
+                : 'bg-[#27187e] text-white'
+            }`}
+          >
             {idx + 1}
           </div>
-          <div className="min-w-0">
-            <h3 className="font-black text-[#27187e] text-lg leading-tight truncate">{unit.title}</h3>
-            <div className="flex items-center gap-3 text-xs text-[#4A5043]/60 font-medium mt-0.5">
-              <span>{totalVideos} video{totalVideos !== 1 ? 's' : ''}</span>
-              {totalDuration > 0 && <span>· {formatDuration(totalDuration)}</span>}
-              {unit.lecturedBy && <span>· Lectures By: {unit.lecturedBy}</span>}
-              {unlockedCount > 0 && (
-                <span className="text-emerald-700 font-bold">· {unlockedCount}/{totalVideos} Unlocked</span>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <h3 className="font-black text-[#27187e] text-xl leading-tight">
+                {unit.title}
+              </h3>
+
+              {/* Status Badges */}
+              {unit.isFree && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-0.5 rounded-full">
+                  Free Unit
+                </span>
+              )}
+              {isUnlocked && !unit.isFree && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                  <CheckCircle size={12} /> Unlocked {daysRemaining !== null ? `(${daysRemaining}d left)` : ''}
+                </span>
+              )}
+              {isExpired && (
+                <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-0.5 rounded-full flex items-center gap-1 border border-amber-200">
+                  <Clock size={12} /> Access Expired
+                </span>
+              )}
+            </div>
+
+            {unit.description && (
+              <p className="text-[#4A5043]/70 text-sm mb-3 line-clamp-2 leading-relaxed">
+                {unit.description}
+              </p>
+            )}
+
+            {/* Video count, duration, instructor, access days */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#4A5043]/70 font-semibold">
+              <span className="flex items-center gap-1 text-[#27187e] font-bold">
+                <Video size={13} className="text-[#3a86ff]" />
+                {totalVideos} {totalVideos === 1 ? 'Video' : 'Videos'}
+              </span>
+              {totalDuration > 0 && (
+                <span className="flex items-center gap-1">
+                  <Clock size={12} /> {formatDuration(totalDuration)}
+                </span>
+              )}
+              {unit.lecturedBy && (
+                <span className="text-[#3a86ff] font-bold">
+                  Lectures By: {unit.lecturedBy}
+                </span>
+              )}
+              {!unit.isFree && (
+                <span className="text-gray-400">
+                  {unit.accessDays || 15} Days Access
+                </span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {unit.isFree && (
-            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold px-3 py-1 rounded-full">
-              Free Unit
-            </span>
-          )}
-          {!isUnitPurchased && !unit.isFree && !isFullCoursePurchased && userId && (
-            <Link href={`/buy/${unit._id}`} className="inline-flex items-center gap-1.5 bg-[#27187e] hover:bg-[#1a0f5a] text-white text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm hover:scale-105 active:scale-100">
-              Buy {formatPKR(unit.price)} →
+        {/* Right: Action Button */}
+        <div className="shrink-0 flex items-center gap-3 sm:self-center">
+          {isUnlocked ? (
+            <Link
+              href={watchUrl}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm px-6 py-3 rounded-xl transition-all shadow-md hover:scale-105 active:scale-100"
+            >
+              <PlayCircle size={18} /> Watch Unit
             </Link>
-          )}
-          {!isUnitPurchased && !unit.isFree && !isFullCoursePurchased && !userId && (
-            <Link href="/sign-in" className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#4A5043] text-xs font-bold px-4 py-2 rounded-xl transition-all border border-gray-200">
-              <Lock size={13} /> Sign in to Buy
+          ) : isExpired ? (
+            <Link
+              href={`/buy/${unit._id}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-black text-sm px-6 py-3 rounded-xl transition-all shadow-md hover:scale-105 active:scale-100"
+            >
+              <Clock size={16} /> Renew Access · {formatPKR(unit.price)} →
+            </Link>
+          ) : userId ? (
+            <Link
+              href={`/buy/${unit._id}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#27187e] hover:bg-[#1a0f5a] text-white font-black text-sm px-6 py-3 rounded-xl transition-all shadow-md hover:scale-105 active:scale-100"
+            >
+              Unlock Unit · {formatPKR(unit.price)} →
+            </Link>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-[#4A5043] font-bold text-sm px-5 py-3 rounded-xl transition-all border border-gray-200"
+            >
+              <Lock size={15} /> Sign in to Unlock
             </Link>
           )}
         </div>
-      </div>
 
-      {/* Topics list */}
-      <div className="p-4 sm:p-5">
-        {unit.topics.length === 0 ? (
-          <p className="text-[#4A5043]/40 text-sm font-medium py-3 text-center">No videos in this unit yet.</p>
-        ) : (
-          <div className="flex flex-col gap-2.5">
-            {unit.topics.map((topic: any, tIdx: number) => {
-              const isUnlocked =
-                unit.isFree ||
-                topic.isFree ||
-                isFullCoursePurchased ||
-                isUnitPurchased
-
-              return (
-                <div
-                  key={topic._id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all ${
-                    isUnlocked
-                      ? 'bg-emerald-50/40 border-emerald-200/50 hover:bg-emerald-50'
-                      : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
-                  }`}
-                >
-                  {/* Topic title & duration */}
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                        isUnlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {isUnlocked ? <PlayCircle size={18} /> : <Lock size={15} />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#27187e] text-sm truncate">{topic.title}</span>
-                        {topic.isFree && (
-                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                            Free
-                          </span>
-                        )}
-                        {isUnlocked && !topic.isFree && !unit.isFree && (
-                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <CheckCircle size={10} /> Unlocked
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-[#4A5043]/50 text-xs font-medium mt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Clock size={11} /> {topic.duration > 0 ? formatDuration(topic.duration) : 'Video Lesson'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action for this Topic */}
-                  <div className="shrink-0 self-end sm:self-auto">
-                    {isUnlocked ? (
-                      <Link
-                        href={`/watch/topic/${topic._id}`}
-                        className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all shadow-sm"
-                      >
-                        <PlayCircle size={14} /> Watch
-                      </Link>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-400 text-xs font-bold px-4 py-2 rounded-xl border border-gray-200">
-                        <Lock size={13} /> Locked
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
     </div>
   )

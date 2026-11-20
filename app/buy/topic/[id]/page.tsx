@@ -43,6 +43,11 @@ export default async function BuyTopicPage({
   // Free topic -> redirect straight to watch
   if (topic.isFree) redirect(`/watch/topic/${id}`)
 
+  // Redirect to unit purchase page (courses are sold by unit)
+  if (topic.unitId) {
+    redirect(`/buy/${topic.unitId}`)
+  }
+
   const unit = await Chapter.findById(topic.unitId).lean() as any
   const course = await Course.findById(topic.courseId).lean() as any
 

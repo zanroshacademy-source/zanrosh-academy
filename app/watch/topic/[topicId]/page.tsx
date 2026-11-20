@@ -65,20 +65,28 @@ export default async function WatchTopicPage({
       }
     }
 
-    // 2. Check Unit (Chapter) purchase (backward compatibility)
+    // 2. Check Unit (Chapter) purchase
     if (!canWatch && !isExpired && unit) {
-      const unitPurchase = await Purchase.findOne({
+      const unitPurchases = await Purchase.find({
         userId,
         chapterId: topic.unitId,
         status: 'approved',
-      }).lean() as any
+      }).lean() as any[]
 
-      if (unitPurchase) {
-        expiresAt = unitPurchase.expiresAt ?? null
-        if (expiresAt && expiresAt < new Date()) {
-          isExpired = true
-        } else {
+      if (unitPurchases && unitPurchases.length > 0) {
+        const activePurchase = unitPurchases.find(
+          (p: any) => !p.expiresAt || new Date(p.expiresAt) >= new Date()
+        )
+        if (activePurchase) {
           canWatch = true
+          isExpired = false
+          expiresAt = activePurchase.expiresAt ?? null
+        } else {
+          isExpired = true
+          const sorted = unitPurchases.slice().sort(
+            (a, b) => new Date(b.expiresAt || 0).getTime() - new Date(a.expiresAt || 0).getTime()
+          )
+          expiresAt = sorted[0]?.expiresAt ?? null
         }
       }
     }
@@ -89,13 +97,19 @@ export default async function WatchTopicPage({
         userId,
         courseId: topic.courseId,
         status: 'approved',
-      }).lean()
-      if (coursePurchase) canWatch = true
+      }).lean() as any
+      if (coursePurchase) {
+        if (!coursePurchase.expiresAt || new Date(coursePurchase.expiresAt) >= new Date()) {
+          canWatch = true
+        } else {
+          isExpired = true
+        }
+      }
     }
   }
 
-  if (isExpired) redirect(`/buy/topic/${topicId}?expired=true`)
-  if (!canWatch) redirect(`/buy/topic/${topicId}`)
+  if (isExpired) redirect(`/buy/${topic.unitId}?expired=true`)
+  if (!canWatch) redirect(`/buy/${topic.unitId}`)
 
   // ── Video URL ──────────────────────────────────────────────────────
   let videoSrc = topic.videoUrl || ''

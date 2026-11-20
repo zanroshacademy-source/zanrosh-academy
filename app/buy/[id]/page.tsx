@@ -96,7 +96,7 @@ export default async function BuyPage({
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-[#27187e] mb-1">Secure Checkout</h2>
-                  <p className="text-[#4A5043]/70 text-sm">Pay securely via Easypaisa</p>
+                  <p className="text-[#4A5043]/70 text-sm">Pay securely via Easypaisa QR Code</p>
                 </div>
               </div>
 
@@ -123,7 +123,6 @@ export default async function BuyPage({
                       itemId={id}
                       itemType="chapter"
                       price={item.price}
-                      easypaisaNumber={process.env.NEXT_PUBLIC_EASYPAISA_NUMBER || '03332121979'}
                       userEmail={userEmail}
                     />
                   </>

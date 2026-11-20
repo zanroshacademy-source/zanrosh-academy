@@ -109,13 +109,12 @@ export async function hasChapterAccess(userId: string, chapterId: string): Promi
 
   const Purchase = (await import('@/models/Purchase')).default
   await connectDB()
-  const purchase = await Purchase.findOne({ userId, chapterId, status: 'approved' })
-  if (!purchase) return false
+  const purchases = await Purchase.find({ userId, chapterId, status: 'approved' }).lean()
+  if (!purchases || purchases.length === 0) return false
 
-  // Check expiry — if expiresAt is set and in the past, access is denied
-  if (purchase.expiresAt && purchase.expiresAt < new Date()) return false
-
-  return true
+  // Check expiry — must have at least one purchase that is not expired
+  const hasActive = purchases.some((p: any) => !p.expiresAt || new Date(p.expiresAt) >= new Date())
+  return hasActive
 }
 
 // ─── Course ownership check (for admins) ──────────────────────────

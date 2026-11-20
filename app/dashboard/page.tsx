@@ -89,18 +89,22 @@ export default async function StudentDashboardPage() {
   const approved = purchases.filter((p: any) => p.status === 'approved')
   const pending  = purchases.filter((p: any) => p.status === 'pending')
 
+  const active = approved.filter((p: any) => !p.expiresAt || new Date(p.expiresAt) >= new Date())
+  const expired = approved.filter((p: any) => p.expiresAt && new Date(p.expiresAt) < new Date())
+
   return (
     <>
       <Navbar />
       <main className="page-container">
         <h1 className="section-title" style={{ marginBottom: '0.5rem' }}>My Dashboard</h1>
-        <p className="section-subtitle" style={{ marginBottom: '2.5rem' }}>Your purchased chapters and payment history</p>
+        <p className="section-subtitle" style={{ marginBottom: '2.5rem' }}>Your purchased units and payment history</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
           {[
-            { label: 'Chapters Unlocked', value: approved.length, icon: <CheckCircle size={22} color="var(--green)" /> },
-            { label: 'Pending Approvals',  value: pending.length,  icon: <Clock size={22} color="var(--amber)" /> },
-            { label: 'Total Payments',     value: payments.length, icon: <BookOpen size={22} color="var(--accent-light)" /> },
+            { label: 'Active Unlocked',    value: active.length,   icon: <CheckCircle size={22} color="var(--green)" /> },
+            { label: 'Expired Access',     value: expired.length,  icon: <Clock size={22} color="var(--amber)" /> },
+            { label: 'Pending Approvals',  value: pending.length,  icon: <Clock size={22} color="var(--accent-light)" /> },
+            { label: 'Total Payments',     value: payments.length, icon: <BookOpen size={22} color="var(--text-muted)" /> },
           ].map((s) => (
             <div key={s.label} className="stat-card">{s.icon}<div className="stat-value">{s.value}</div><div className="stat-label">{s.label}</div></div>
           ))}
@@ -108,7 +112,7 @@ export default async function StudentDashboardPage() {
 
         <section className="mb-10">
           <h2 className="text-2xl font-black text-[#27187e] mb-6 flex items-center gap-2">
-            🎓 My Content & Topics
+            🎓 My Units & Courses
           </h2>
           {approved.length === 0 ? (
             <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center text-[#4A5043]/60 font-medium flex flex-col items-center">
@@ -124,32 +128,62 @@ export default async function StudentDashboardPage() {
                 const isTopic   = !!p.topicId   && typeof p.topicId   === 'object'
                 const isCourse  = !!p.courseId  && typeof p.courseId  === 'object'
                 const item      = isTopic ? p.topicId : isCourse ? p.courseId : p.chapterId
-                const watchHref = isTopic ? `/watch/topic/${item?._id}` : isCourse ? `/courses/${item?._id}` : `/courses/${item?.courseId || item?._id}`
-                const watchLabel = isTopic ? 'Watch Topic' : isCourse ? 'View Course' : 'View Unit'
-                const tagLabel   = isTopic ? '🎬 Topic' : isCourse ? '📚 Full Course' : '📖 Unit'
                 if (!item) return null
+
+                const isItemExpired = p.expiresAt && new Date(p.expiresAt) < new Date()
+                const daysRemaining = p.expiresAt && !isItemExpired
+                  ? Math.max(0, Math.ceil((new Date(p.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+                  : null
+
+                const watchHref = isTopic
+                  ? `/watch/topic/${item?._id}`
+                  : isCourse
+                  ? `/courses/${item?._id}`
+                  : `/courses/${item?.courseId || item?._id}`
+                const renewHref = isTopic
+                  ? `/buy/${item?.unitId || item?._id}`
+                  : `/buy/${item?._id}`
+
+                const watchLabel = isTopic ? 'Watch Video' : isCourse ? 'View Course' : 'Watch Unit'
+                const tagLabel   = isTopic ? '🎬 Topic' : isCourse ? '📚 Full Course' : '📖 Unit'
+
                 return (
-                  <div key={p._id.toString()} className="bg-white rounded-[2rem] p-6 border border-[#27187e]/10 shadow-[0_8px_30px_rgba(39,24,126,0.06)] hover:shadow-[0_20px_40px_rgba(39,24,126,0.12)] hover:-translate-y-2 transition-all duration-300 flex flex-col relative overflow-hidden group">
+                  <div key={p._id.toString()} className={`bg-white rounded-[2rem] p-6 border shadow-[0_8px_30px_rgba(39,24,126,0.06)] hover:shadow-[0_20px_40px_rgba(39,24,126,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col relative overflow-hidden group ${
+                    isItemExpired ? 'border-amber-200 bg-gradient-to-br from-white to-amber-50/20' : 'border-[#27187e]/10'
+                  }`}>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#27187e]/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150" />
 
                     <div className="relative z-10 flex flex-col h-full">
-                      <div className="flex items-center gap-2 mb-4">
+                      <div className="flex items-center justify-between gap-2 mb-4">
                         <span className="bg-[#27187e]/10 text-[#27187e] px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
                           {tagLabel}
                         </span>
-                        <span className="flex items-center gap-1.5 text-xs font-black text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                          <CheckCircle size={14} /> Unlocked
-                        </span>
+
+                        {isItemExpired ? (
+                          <span className="flex items-center gap-1.5 text-xs font-black text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
+                            <Clock size={13} /> Access Expired
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-xs font-black text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                            <CheckCircle size={13} /> Active {daysRemaining !== null ? `(${daysRemaining}d left)` : ''}
+                          </span>
+                        )}
                       </div>
 
-                      <h3 className="text-2xl font-black text-[#27187e] mb-2 leading-tight group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-xl font-black text-[#27187e] mb-2 leading-tight group-hover:text-blue-600 transition-colors">
                         {item?.title}
                       </h3>
 
                       <div className="mt-auto flex items-center justify-end pt-6">
-                        <Link href={watchHref} className="bg-gradient-to-r from-[#27187e] to-[#1a0f5a] text-white px-6 py-3 rounded-xl text-sm font-black flex items-center gap-2 hover:scale-105 transition-transform shadow-md group-hover:shadow-lg">
-                          <PlayCircle size={18} /> {watchLabel}
-                        </Link>
+                        {isItemExpired ? (
+                          <Link href={renewHref} className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 hover:scale-105 transition-transform shadow-md">
+                            <Clock size={15} /> Renew Access
+                          </Link>
+                        ) : (
+                          <Link href={watchHref} className="bg-gradient-to-r from-[#27187e] to-[#1a0f5a] text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 hover:scale-105 transition-transform shadow-md group-hover:shadow-lg">
+                            <PlayCircle size={16} /> {watchLabel}
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
